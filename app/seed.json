@@ -1,0 +1,547 @@
+{
+ "instrumen": {
+  "total_tabel": 38,
+  "kriteria": 8,
+  "total_dokumen": 78,
+  "tabel_na": []
+ },
+ "kriteria": [
+  {
+   "kode": "K1",
+   "nama": "Visi, Misi, Tujuan & Strategi",
+   "singkat": "Visi & Misi",
+   "butir": "Visi, misi, tujuan, strategi",
+   "temuan": null
+  },
+  {
+   "kode": "K2",
+   "nama": "Kurikulum",
+   "singkat": "Kurikulum",
+   "butir": "Substansi kurikulum, CPL, RPS",
+   "temuan": "Tabel 1 baru terisi sebagian; matriks MK–CPL belum lengkap."
+  },
+  {
+   "kode": "K3",
+   "nama": "Penilaian Pembelajaran",
+   "singkat": "Penilaian",
+   "butir": "Keberhasilan studi, IPK, lulusan, uji kompetensi",
+   "temuan": "Sebagian tabel penilaian belum diisi; uji kompetensi belum masuk."
+  },
+  {
+   "kode": "K4",
+   "nama": "Mahasiswa",
+   "singkat": "Mahasiswa",
+   "butir": "Seleksi, layanan, kepuasan, masa tunggu",
+   "temuan": "NIM ganda membuat Tabel 9 dan 10 menghitung orang yang sama dua kali."
+  },
+  {
+   "kode": "K5",
+   "nama": "Dosen & Tendik",
+   "singkat": "Dosen",
+   "butir": "Kualifikasi, penelitian, PkM, karya, penghargaan",
+   "temuan": "Rasio dosen:mahasiswa melebihi batas instrumen; ada dosen tanpa STR aktif."
+  },
+  {
+   "kode": "K6",
+   "nama": "Sarana, Prasarana & Keuangan",
+   "singkat": "Sarana",
+   "butir": "Laboratorium, pustaka, jurnal, keuangan",
+   "temuan": "Persen penggunaan dana TS-1 belum tepat 100%."
+  },
+  {
+   "kode": "K7",
+   "nama": "Penjaminan Mutu",
+   "singkat": "Penjaminan Mutu",
+   "butir": "PPEPP, audit internal, SPME",
+   "temuan": "Belum ada laporan audit internal siklus terakhir."
+  },
+  {
+   "kode": "K8",
+   "nama": "Tata Kelola & Administrasi",
+   "singkat": "Tata Kelola",
+   "butir": "Kerja sama dan tata kelola",
+   "temuan": "Dokumen kerja sama belum semua diperbarui."
+  }
+ ],
+ "tabel": [
+  {
+   "kode": "1",
+   "judul": "Substansi Kurikulum (kuliah/praktikum/praktik) di Tahap Akademik dan Tahap Profesi",
+   "kode_kriteria": "K2",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "2",
+   "judul": "Persentase Keberhasilan Studi",
+   "kode_kriteria": "K3",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "3",
+   "judul": "Data IPK Lulusan Tahap Akademik",
+   "kode_kriteria": "K3",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "4",
+   "judul": "Data IPK Lulusan Tahap Profesi",
+   "kode_kriteria": "K3",
+   "status": "kosong",
+   "field_terisi": 0,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "5",
+   "judul": "Data Lulusan Tepat Waktu Tahap Akademik",
+   "kode_kriteria": "K3",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "6",
+   "judul": "Data Lulusan Tepat Waktu Tahap Profesi",
+   "kode_kriteria": "K3",
+   "status": "kosong",
+   "field_terisi": 0,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "7",
+   "judul": "Uji Kompetensi Mahasiswa Program Studi (UKMPS-CBT)",
+   "kode_kriteria": "K3",
+   "status": "kosong",
+   "field_terisi": 0,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "8",
+   "judul": "Uji Kompetensi Mahasiswa Program Studi (UKMPS-OSCE)",
+   "kode_kriteria": "K3",
+   "status": "kosong",
+   "field_terisi": 0,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "9",
+   "judul": "Data Total Mahasiswa",
+   "kode_kriteria": "K4",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "10",
+   "judul": "Data Mahasiswa Tahap Akademik",
+   "kode_kriteria": "K4",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "11",
+   "judul": "Data Mahasiswa Tahap Profesi",
+   "kode_kriteria": "K4",
+   "status": "kosong",
+   "field_terisi": 0,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "12",
+   "judul": "Kepuasan Mahasiswa",
+   "kode_kriteria": "K4",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "13",
+   "judul": "Masa Tunggu Lulusan Mendapatkan Pekerjaan",
+   "kode_kriteria": "K4",
+   "status": "kosong",
+   "field_terisi": 0,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "14",
+   "judul": "Tingkat Kepuasan Pengguna",
+   "kode_kriteria": "K4",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "15",
+   "judul": "Dosen Tetap",
+   "kode_kriteria": "K5",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "16",
+   "judul": "Dosen Tetap Tahap Akademik dan Profesi",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "17",
+   "judul": "Aktivitas Dosen Tetap",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "18",
+   "judul": "Tabel 18a & 18b Kegiatan seminar ilmiah/lokakarya/penataran/pameran Dosen dan Tendik Tetap",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "19",
+   "judul": "Data Dosen Tidak Tetap",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "20",
+   "judul": "Kegiatan tenaga ahli/pakar pada program studi",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "21",
+   "judul": "Pembimbingan Tugas Akhir/Skripsi",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "22",
+   "judul": "Data Kegiatan Penelitian Dosen Tetap Program Studi",
+   "kode_kriteria": "K5",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "23",
+   "judul": "Data Kegiatan Pengabdian kepada Masyarakat (PkM) Dosen Tetap Program Studi",
+   "kode_kriteria": "K5",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "24",
+   "judul": "Artikel Ilmiah/Karya Ilmiah/Buku Tiga Tahun Terakhir",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "25",
+   "judul": "Jumlah Karya Dosen dan Atau Mahasiswa Program Studi",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "26",
+   "judul": "Jumlah Pengabdian kepada Masyarakat yang relevan dengan Program Studi",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "27",
+   "judul": "Penghargaan Dosen Tetap Program Studi",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "28",
+   "judul": "Jumlah Karya Mahasiswa",
+   "kode_kriteria": "K5",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "29",
+   "judul": "Prasarana dan Peralatan Utama Laboratorium",
+   "kode_kriteria": "K6",
+   "status": "kosong",
+   "field_terisi": 0,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "30",
+   "judul": "Wahana Praktik Profesi: Rumah Sakit dan Sarana Pelayanan Kesehatan Lain",
+   "kode_kriteria": "K6",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "31",
+   "judul": "Rekapitulasi jumlah ketersediaan pustaka yang relevan dengan bidang program studi, baik dalam format cetak maupun elektronik",
+   "kode_kriteria": "K6",
+   "status": "kosong",
+   "field_terisi": 0,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "32",
+   "judul": "Jurnal yang tersedia/yang diterima secara teratur (lengkap), terbitan tiga tahun terakhir",
+   "kode_kriteria": "K6",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "33",
+   "judul": "Jumlah Penerimaan Dana",
+   "kode_kriteria": "K6",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "34",
+   "judul": "Jumlah Penggunaan Dana",
+   "kode_kriteria": "K6",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "35",
+   "judul": "Evaluasi dan Pengendalian Sistem Penjaminan Mutu Internal",
+   "kode_kriteria": "K7",
+   "status": "sebagian",
+   "field_terisi": 3,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "36",
+   "judul": "Ketersediaan Dokumen/Buku Sistem Penjaminan Mutu Internal",
+   "kode_kriteria": "K7",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "37",
+   "judul": "Tabel 37 Penjaminan Mutu Eksternal",
+   "kode_kriteria": "K7",
+   "status": "kosong",
+   "field_terisi": 0,
+   "field_total": 6,
+   "berlaku": 1
+  },
+  {
+   "kode": "38",
+   "judul": "Kerja sama Unit Pengelola Program Studi yang Relevan dengan  Program Studi yang sedang diakreditasi",
+   "kode_kriteria": "K8",
+   "status": "lengkap",
+   "field_terisi": 6,
+   "field_total": 6,
+   "berlaku": 1
+  }
+ ],
+ "kedaluwarsa": [
+  {
+   "nama": "SK Dekan Kurikulum 2020",
+   "kode_kriteria": "K2",
+   "berlaku_sampai": "03 Sep 2020"
+  },
+  {
+   "nama": "Laporan Audit Internal 2021",
+   "kode_kriteria": "K7",
+   "berlaku_sampai": "15 Nov 2021"
+  },
+  {
+   "nama": "Sertifikat Akreditasi Prodi",
+   "kode_kriteria": "K1",
+   "berlaku_sampai": "20 Jan 2021"
+  },
+  {
+   "nama": "SK Struktur Organisasi 2021",
+   "kode_kriteria": "K8",
+   "berlaku_sampai": "01 Feb 2021"
+  },
+  {
+   "nama": "MoU Dinas Kesehatan 2020",
+   "kode_kriteria": "K6",
+   "berlaku_sampai": "10 Mar 2020"
+  },
+  {
+   "nama": "Laporan Penelitian Dosen 2021",
+   "kode_kriteria": "K5",
+   "berlaku_sampai": "28 Des 2021"
+  },
+  {
+   "nama": "Sertifikat Lab Kompetensi",
+   "kode_kriteria": "K6",
+   "berlaku_sampai": "05 Apr 2021"
+  }
+ ],
+ "pengguna": [
+  {
+   "nama": "Siti Rahmawati, S.ST., M.Keb",
+   "peran": "Operator Prodi",
+   "prodi": "Kebidanan",
+   "status": "aktif",
+   "aktif_terakhir": "hari ini"
+  },
+  {
+   "nama": "Nurhayati, S.Kep., M.Kep",
+   "peran": "Operator Prodi",
+   "prodi": "Keperawatan",
+   "status": "aktif",
+   "aktif_terakhir": "kemarin"
+  },
+  {
+   "nama": "Dr. Maimunah, M.Keb",
+   "peran": "Verifikator",
+   "prodi": "Kebidanan",
+   "status": "aktif",
+   "aktif_terakhir": "2 hari lalu"
+  },
+  {
+   "nama": "Yusrizal, S.Kep., Ns., M.Kep",
+   "peran": "Verifikator",
+   "prodi": "Keperawatan",
+   "status": "aktif",
+   "aktif_terakhir": "3 hari lalu"
+  },
+  {
+   "nama": "Dr. Ir. Zulfikar, M.Pd",
+   "peran": "Admin UPPS",
+   "prodi": "Semua prodi",
+   "status": "aktif",
+   "aktif_terakhir": "hari ini"
+  },
+  {
+   "nama": "Prof. Dr. Cut Zahriah, M.Pd",
+   "peran": "Pimpinan",
+   "prodi": "Semua prodi",
+   "status": "aktif",
+   "aktif_terakhir": "1 minggu lalu"
+  },
+  {
+   "nama": "Marlina, S.ST., M.Keb",
+   "peran": "Operator + Verifikator",
+   "prodi": "Kebidanan + Keperawatan",
+   "status": "konflik",
+   "aktif_terakhir": "hari ini"
+  },
+  {
+   "nama": "Hasnawati, A.Md.Keb",
+   "peran": "Operator Prodi",
+   "prodi": "Kebidanan",
+   "status": "nonaktif",
+   "aktif_terakhir": "14 Sep 2026"
+  }
+ ],
+ "izin": [
+  "Isi",
+  "Impor",
+  "Verifikasi",
+  "Buka kunci",
+  "Kelola pengguna",
+  "Ekspor"
+ ],
+ "matrix": {
+  "Operator Prodi": [
+   1,
+   1,
+   0,
+   0,
+   0,
+   1
+  ],
+  "Verifikator": [
+   0,
+   0,
+   1,
+   0,
+   0,
+   1
+  ],
+  "Admin UPPS": [
+   1,
+   1,
+   1,
+   1,
+   1,
+   1
+  ],
+  "Pimpinan": [
+   2,
+   2,
+   2,
+   0,
+   0,
+   1
+  ]
+ }
+}

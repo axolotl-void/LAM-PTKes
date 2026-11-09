@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Database runtime — dibuat ulang oleh serve.py dari seed.json
+*.db
+*.db-wal
+*.db-shm
+
+# macOS
+.DS_Store
+._*
+
+# Editor
+.vscode/
+.idea/
+*.swp
+
+# Log
+*.log
