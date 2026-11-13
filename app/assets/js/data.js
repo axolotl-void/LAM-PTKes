@@ -194,6 +194,12 @@ export const DOKUMEN = {
  */
 export const KONSISTENSI_GAGAL = [];
 
+/* Jumlah aturan yang diperiksa server. Dipakai penyebut badge sidebar
+   ("0/10 gagal"). Dulu badge cuma "0 gagal" tanpa penyebut, jadi pembaca
+   tidak tahu harus gagal dari berapa. Diisi dari GET /api/konsistensi;
+   10 adalah jumlah aturan bawaan (uji_konsistensi menjaga angka ini). */
+export const KONSISTENSI = { total: 10, diperiksa: false };
+
 /* tabel terbaru (baris 3 dashboard) — tabel, judul, status, ket, aksi */
 export const TABEL_TERBARU = [
   ['T-01', 'Visi, Misi, Tujuan, Strategi', 'lengkap', '5 field terisi · diverifikasi', 'Buka'],

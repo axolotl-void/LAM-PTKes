@@ -37,6 +37,13 @@ function page(state) {
       : p))
     .filter((p) => !(p.ke === 'pengguna' && konflikDB === 0));
   const blokir = penghalang.filter((p) => p.jenis === 'blokir').length;
+
+  // Dokumen: WAJIB dari server, bukan konstanta DOKUMEN di data.js (41/78/7
+  // karangan). Tanpa ini sidebar dan dashboard menampilkan dua angka berbeda
+  // untuk hal yang sama di layar yang sama.
+  const dokTotal = R('dokumen_total', null) ?? DOKUMEN.total;
+  const dokTerunggah = R('dokumen_terunggah', null) ?? 0;
+  const dokKedaluwarsa = R('dokumen_kedaluwarsa', null) ?? 0;
   const locked = penghalang.length > 0;
 
   const celahDB = (() => {
@@ -125,9 +132,9 @@ function page(state) {
       </div>
       <div class="blk">
         <div class="lbl">Dokumen bukti</div>
-        <div class="big">${DOKUMEN.terunggah}<span> dari ${DOKUMEN.total} bukti</span></div>
-        <div class="segbar"><i class="ind" style="width:${(DOKUMEN.terunggah / DOKUMEN.total) * 100}%"></i></div>
-        <div class="lbl" style="margin-top:8px">${DOKUMEN.total - DOKUMEN.terunggah} belum diunggah, termasuk ${DOKUMEN.kedaluwarsa} kedaluwarsa</div>
+        <div class="big">${dokTerunggah}<span> dari ${dokTotal} bukti</span></div>
+        <div class="segbar"><i class="ind" style="width:${dokTotal ? (dokTerunggah / dokTotal) * 100 : 0}%"></i></div>
+        <div class="lbl" style="margin-top:8px">${dokTotal - dokTerunggah} belum diunggah, termasuk ${dokKedaluwarsa} kedaluwarsa</div>
       </div>
     </div>`
   // ── baris 2: celah (62) + penghalang (38) ───────────────────────

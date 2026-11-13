@@ -9,7 +9,7 @@
  * mengerjakan halaman berbeda tanpa bentrok.
  */
 import { icon } from './icons.js';
-import { D, PRODI, PERIODE, INSTRUMEN, KONSISTENSI_GAGAL, esc, badge } from './pagekit.js';
+import { D, PRODI, PERIODE, INSTRUMEN, KONSISTENSI_GAGAL, KONSISTENSI, esc, badge } from './pagekit.js';
 import { R, boleh, EKSPOR } from './api.js';
 
 export { esc, nf, head, strip, badge, card, cardHead, callout, dlist, mbar, empty, table }
@@ -67,6 +67,18 @@ function ensureCss(page) {
 
 /* ── NAV ──────────────────────────────────────────────────────────── */
 const navItems = () => [
+  // HASIL di paling atas: tiga halaman ini yang diisi/dicek setiap hari.
+  // Sebelumnya grupnya tanpa label di paling bawah, tepat di atas kotak
+  // ekspor — terbaca seperti pelengkap padahal justru inti pekerjaannya.
+  ['HASIL', null, [
+    ['datadukung', 'Data Dukung', null, 'archive', `${R('lengkap', D.tabelLengkap)}/${INSTRUMEN.totalTabel}`, 'warn'],
+    ['dokumen', 'Dokumen Pendukung', null, 'document', `${R('dokumen_terunggah', D.dokTerunggah)}/${INSTRUMEN.totalDokumen}`, 'warn'],
+    // Badge satu grup harus satu satuan. "0 gagal" tanpa penyebut membuat
+    // pembaca bertanya "dari berapa aturan?" — angka penyebutnya ada.
+    ['konsistensi', 'Konsistensi', null, 'consistency',
+      `${KONSISTENSI_GAGAL.length}/${KONSISTENSI.total || 10} gagal`,
+      KONSISTENSI_GAGAL.length > 0 ? 'bad' : 'ok'],
+  ]],
   ['MENU', null, [
     ['dashboard', 'Dashboard', null, 'dashboard'],
     ['ringkasan', 'Ringkasan 8 Kriteria', null, 'summary'],
@@ -88,11 +100,6 @@ const navItems = () => [
     ['pustaka', 'Pustaka & Jurnal', 'F-16', 'library'],
     ['uji', 'Uji Kompetensi', 'F-09', 'competency'],
     ['survei', 'Survei & Tracer', 'F-10', 'survey'],
-  ]],
-  [null, null, [
-    ['datadukung', 'Data Dukung', null, 'archive', `${R('lengkap', D.tabelLengkap)}/${INSTRUMEN.totalTabel}`, 'warn'],
-    ['dokumen', 'Dokumen Pendukung', null, 'document', `${R('dokumen_terunggah', D.dokTerunggah)}/${INSTRUMEN.totalDokumen}`, 'warn'],
-    ['konsistensi', 'Konsistensi', null, 'consistency', `${KONSISTENSI_GAGAL.length} gagal`, 'bad'],
   ]],
 ];
 
