@@ -36,6 +36,7 @@ require_once __DIR__ . '/system/identitas.php';
 require_once __DIR__ . '/system/kelompok.php';
 require_once __DIR__ . '/system/tarik.php';
 require_once __DIR__ . '/system/tabel15.php';
+require_once __DIR__ . '/system/hitung_peta.php';
 require_once __DIR__ . '/spesifikasi/tabel.php';
 
 /* ── util ───────────────────────────────────────────────────────── */
@@ -190,6 +191,7 @@ if ($r0 === 'tabel' && $r1 === '') {
             'dikunci_oleh' => $t['dikunci'] ? 'verifikator' : null,
             'hanya_hitung' => $t['hanya_hitung'] ?? false,
             'matriks' => in_array($t['kode'], tabel_matriks(), true),
+            'ada_hitung' => isset(hitung_tabel()[$t['kode']]),
         ];
     }
     json_keluar($out);
@@ -326,6 +328,16 @@ if ($r0 === 'tabel' && $r1 !== '') {
         }
         $data = isi_tabel_api($kodeTabel, (int) $b['terisi'], $pengguna['nama'] ?? 'operator');
         json_keluar($data);
+    }
+    if ($r2 === 'hitung') {
+        // Tabel berkolom Hitung. Hasilnya dihitung saat diminta, tidak
+        // disimpan: angkanya bergantung master yang bisa berubah kapan saja.
+        wajib_masuk();
+        $p = prodi_aktif();
+        if (!$p) {
+            json_keluar(['error' => 'Prodi belum dipilih.'], 409);
+        }
+        json_keluar(hitung_satu($kodeTabel, $p) + ['boleh_ubah' => boleh('ISI')]);
     }
     if ($r2 === 'matriks') {
         // Tabel 15 seluruhnya dihitung dari master dosen; tidak ada isian.

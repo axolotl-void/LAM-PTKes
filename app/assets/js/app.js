@@ -21,6 +21,7 @@ const page = () => {
   // pekerjaannya di tengah pengisian.
   if (h.startsWith('tabelisi')) return 'tabelisi';
   if (h.startsWith('tabelmatriks')) return 'tabelmatriks';
+  if (h.startsWith('tabelhitung')) return 'tabelhitung';
   return PAGES.has(h) ? h : 'dashboard';
 };
 
@@ -120,6 +121,7 @@ const pemuat = {
   survei: () => import('./pages/survei.js').then((m) => m.muat?.()),
   tabelisi: () => import('./pages/tabelisi.js').then((m) => m.muat?.()),
   tabelmatriks: () => import('./pages/tabelmatriks.js').then((m) => m.muat?.()),
+  tabelhitung: () => import('./pages/tabelhitung.js').then((m) => m.muat?.()),
 };
 function muatHalaman() {
   const p = page();

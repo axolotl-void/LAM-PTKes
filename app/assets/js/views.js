@@ -34,6 +34,7 @@ import * as m_dokumen from './pages/dokumen.js';
 import * as m_konsistensi from './pages/konsistensi.js';
 import * as m_tabelisi from './pages/tabelisi.js';
 import * as m_tabelmatriks from './pages/tabelmatriks.js';
+import * as m_tabelhitung from './pages/tabelhitung.js';
 
 /* Label status: sekarang di pagekit.js (satu definisi). views.js hanya
    meneruskan supaya pemanggil lama tetap jalan. */
@@ -46,6 +47,7 @@ const MODS = {
   // dibuka dari tombol "Isi" di daftar Data Dukung.
   tabelisi: m_tabelisi,
   tabelmatriks: m_tabelmatriks,
+  tabelhitung: m_tabelhitung,
 };
 const PAGES = Object.fromEntries(Object.entries(MODS).map(([k, m]) => [k, m.default]));
 

@@ -1001,3 +1001,13 @@ body.belum-masuk .sb-toggle { display: none; }
 }
 .mat-baris .mat-total td { border-top: 2px solid var(--bd); font-weight: 700; }
 .mat-baris th.r, .mat-baris td.r { text-align: right; white-space: nowrap; }
+
+/* Tabel hitungan: angka rata kanan, baris judul blok tebal. */
+.tbl-hitung th, .tbl-hitung td { white-space: nowrap; }
+.tbl-hitung td.r { text-align: right; }
+.tbl-hitung tr.judul-blok td { background: var(--dv); font-weight: 700; }
+.tbl-hitung tr.total td { border-top: 2px solid var(--bd); font-weight: 700; }
+
+/* Label kolom hitungan dari nama kunci (mis. "Lulusan ipk 2 00 3 00") kurang
+   terbaca. Dibuat kapital di awal saja supaya tidak berteriak. */
+.tbl-hitung thead th { text-transform: none; }

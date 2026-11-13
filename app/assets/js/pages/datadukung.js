@@ -103,14 +103,22 @@ function rowWajib(t) {
   // Tabel matriks punya halamannya sendiri: bentuknya bukan daftar baris
   // yang bisa ditambah, jadi "Isi" di sini akan menyesatkan.
   const matriks = lv && lv.matriks;
+  const adaHitung = lv && lv.ada_hitung;
   const hanyaHitung = lv && lv.hanya_hitung;
+
+  // Tabel berkolom Hitung punya halaman hitungan sendiri. Kalau punya kolom
+  // isian juga (mis. Tabel 10: daya tampung manual + sisanya hitung), yang
+  // ditawarkan "Isi" karena itu pekerjaan operator; angkanya tetap tampil
+  // di halaman isian.
   const aksi = matriks
     ? `<a class="lnk" href="#/tabelmatriks/${no}">Lihat →</a>`
     : st === 'terkunci'
       ? `<span class="lnk muted">Terkunci</span>${bukaBtn}`
       : (bisaIsi && !hanyaHitung)
         ? `<a class="lnk dd-isi" href="#/tabelisi/${no}">Isi →</a>`
-        : `<a class="lnk" href="#/tabelisi/${no}">Lihat →</a>`;
+        : adaHitung
+          ? `<a class="lnk" href="#/tabelhitung/${no}">Lihat →</a>`
+          : `<a class="lnk" href="#/tabelisi/${no}">Lihat →</a>`;
   const aksiFinal = `${aksi}${kunciBtn}`;
 
 
