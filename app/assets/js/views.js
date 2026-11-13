@@ -77,7 +77,9 @@ const navItems = () => [
     // pembaca bertanya "dari berapa aturan?" — angka penyebutnya ada.
     ['konsistensi', 'Konsistensi', null, 'consistency',
       `${KONSISTENSI_GAGAL.length}/${KONSISTENSI.total || 10} gagal`,
-      KONSISTENSI_GAGAL.length > 0 ? 'bad' : 'ok'],
+      // Hijau = lulus. Nol gagal bukan "lulus", jadi pakai netral:
+      // hijau di baris berlabel "gagal" terbaca seperti dua hal sekaligus.
+      KONSISTENSI_GAGAL.length > 0 ? 'bad' : 'muted'],
   ]],
   ['MENU', null, [
     ['dashboard', 'Dashboard', null, 'dashboard'],

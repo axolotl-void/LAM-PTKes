@@ -62,7 +62,10 @@ export const TABEL_WAJIB = TABEL.map((t) => [
 
 export const ST_KIND = {
   lengkap: 'ok', sebagian: 'warn', kosong: 'muted',
-  terkunci: 'lock', na: 'na', hitung: 'lock',
+  terkunci: 'lock', na: 'na',
+  // 'hitung' dulu 'lock' -> kartu "Otomatis" bertepi ungu, sama dengan
+  // "Terkunci". Dua arti berbeda tidak boleh satu warna.
+  hitung: 'hitung',
 };
 const ST_TXT = {
   lengkap: 'Lengkap', sebagian: 'Sebagian', kosong: 'Kosong',
@@ -74,11 +77,25 @@ function chip(label, kind, n) {
   return `<span class="chip ${kind}">${esc(label)} <b>${n}</b></span>`;
 }
 
+/* Chip yang bisa diklik. `aktif` menandai pilihan sekarang supaya orang tahu
+   daftar sedang tersaring — tanpa penanda, kartu yang hilang terasa seperti
+   data yang hilang. */
+function chipAktif(label, kind, n, aktif = false) {
+  return `<button type="button" class="chip ${kind}${aktif ? ' on' : ''}"
+    data-saring="${esc(label.toLowerCase())}" aria-pressed="${aktif}">
+    ${esc(label)} <b>${n}</b></button>`;
+}
+
 /* Angka DB menang atas konstanta. Kalau LIVE null (server mati), tetap
    memakai data dari TABEL_WAJIB supaya halaman tidak kosong. */
 function liveFor(no) {
   if (!LIVE.siap) return null;
-  return LIVE.tabel.find((t) => t.kode === no) || null;
+  // Normalisasi WAJIB: kode dari server ber-padding ("01"), nomor dari
+  // TABEL_WAJIB tidak ("1"). Tanpa ini perbandingan selalu gagal dan setiap
+  // baris diam-diam memakai data statis — kartu bilang 0 lengkap, baris
+  // bilang Lengkap 6/6, di layar yang sama.
+  const kunci = String(no).padStart(2, '0');
+  return LIVE.tabel.find((t) => String(t.kode).padStart(2, '0') === kunci) || null;
 }
 
 function rowWajib(t) {
@@ -132,6 +149,61 @@ function rowWajib(t) {
   </tr>`;
 }
 
+/* Satu tabel = satu kartu. Alasan bentuk kartu, bukan baris tabel:
+ *  - judul tabel panjang (sampai 90 karakter) terpotong di kolom tabel,
+ *  - 38 baris = 1845px gulir tanpa titik pandang,
+ *  - tiap tabel punya satu aksi utama + satu metrik; di kartu keduanya
+ *    bisa diberi bobot visual yang benar, di baris tabel semuanya rata.
+ */
+function kartuTabel(t) {
+  const [no, judul, kStatis, stStatis, ftStatis, fttStatis] = t;
+  const lv = liveFor(no);
+  const st = lv ? lv.status : stStatis;
+  const ft = lv ? lv.field_terisi : ftStatis;
+  const ftt = lv ? lv.field_total : fttStatis;
+
+  const bisaIsi = st !== 'terkunci' && ft < ftt && boleh('Isi');
+  const hanyaHitung = lv && lv.hanya_hitung;
+  const matriks = lv && lv.matriks;
+  const adaHitung = lv && lv.ada_hitung;
+
+  // Aksi utama ditentukan oleh bentuk tabelnya, bukan oleh status saja:
+  // tabel matriks/hitungan tidak punya baris yang bisa ditambah.
+  let tautan = `#/tabelisi/${no}`;
+  let label = ft > 0 ? 'Lanjutkan' : 'Isi';
+  if (matriks) { tautan = `#/tabelmatriks/${no}`; label = 'Lihat'; }
+  else if (hanyaHitung || (!bisaIsi && adaHitung)) { tautan = `#/tabelhitung/${no}`; label = 'Lihat'; }
+  else if (!bisaIsi) { label = 'Lihat'; }
+
+  // Bilah kemajuan hanya kalau ada penyebut. 0/0 = tabel otomatis; bilah
+  // kosong di situ terbaca "belum dikerjakan" padahal tidak ada yang dikerjakan.
+  const persen = ftt > 0 ? Math.round((ft / ftt) * 100) : null;
+  const bilah = persen === null
+    ? '<div class="kt-bilah kt-bilah-auto" title="tidak ada kolom isian manual"></div>'
+    : `<div class="kt-bilah" title="${ft} dari ${ftt} kolom terisi">
+         <i style="width:${persen}%"></i></div>`;
+
+  const metrik = ftt > 0
+    ? `<span class="kt-metrik">${ft}<span>/${ftt} kolom</span></span>`
+    : '<span class="kt-metrik kt-metrik-auto">otomatis</span>';
+
+  // data-st dipakai filter chip; tanpa ini chip jadi hiasan dan 38 kartu
+  // harus dipindai satu per satu untuk mencari yang masih kosong.
+  return `<article class="kt kt-${ST_KIND[st] || 'muted'}" data-st="${esc(st)}">
+    <div class="kt-kepala">
+      <span class="kt-kode">T-${String(no).padStart(2, '0')}</span>
+      ${badge(ST_KIND[st], ST_TXT[st])}
+    </div>
+    <h3 class="kt-judul">${esc(judul)}</h3>
+    ${bilah}
+    <div class="kt-kaki">
+      ${metrik}
+      <a class="kt-aksi${label === 'Lihat' ? ' kt-aksi-sekunder' : ''}"
+         href="${tautan}">${label} →</a>
+    </div>
+  </article>`;
+}
+
 function rowNA(t) {
   const [no, judul, k] = t;
   return `<tr class="na-row">
@@ -183,8 +255,32 @@ function page(state) {
   }
   const belum = TABEL_WAJIB.length - hitung.lengkap - hitung.terkunci;
 
-  const rowsWajib = TABEL_WAJIB.map(rowWajib).join('');
   const rowsNA = TABEL_NA.map(rowNA).join('');
+
+  // Kelompokkan per kriteria. 38 kartu datar masih melelahkan; 8 bagian
+  // memberi tempat berhenti mata, dan tiap bagian punya angka sisa sendiri
+  // sehingga orang tahu kriteria mana yang paling tertinggal.
+  const KRIT_NAMA = Object.fromEntries(KRITERIA.map((k) => [k.kode, k.nama || k.kode]));
+  const perKrit = {};
+  TABEL_WAJIB.forEach((t) => {
+    const lv = liveFor(t[0]);
+    const kode = t[2];
+    (perKrit[kode] = perKrit[kode] || []).push({ t, st: lv ? lv.status : t[3] });
+  });
+
+  const bagianKrit = Object.keys(perKrit).sort().map((kode) => {
+    const isi = perKrit[kode];
+    const selesai = isi.filter((x) => x.st === 'lengkap' || x.st === 'terkunci').length;
+    const otomatis = isi.filter((x) => x.st === 'hitung').length;
+    const sisa = isi.length - selesai - otomatis;
+    return `<section class="kt-bagian">
+      <div class="kt-bagian-kepala">
+        <h2><span class="kt-krit">${esc(kode)}</span> ${esc(KRIT_NAMA[kode] || '')}</h2>
+        <span class="note">${selesai} dari ${isi.length} selesai${otomatis ? ` · ${otomatis} otomatis` : ''}${sisa ? ` · ${sisa} perlu diisi` : ''}</span>
+      </div>
+      <div class="kt-grid">${isi.map((x) => kartuTabel(x.t)).join('')}</div>
+    </section>`;
+  }).join('');
 
   const tblHead = `<tr>
     <th>Tabel</th><th>Judul</th><th>Kriteria</th><th>Status</th>
@@ -203,25 +299,21 @@ function page(state) {
     [`${hitung.kosong}`, 'kosong', 'bad'],
     [`${hitung.terkunci}`, 'terkunci', 'lock'],
   ])
-  // filter chip — tampilan, JS filter tidak wajib
-  + `<div class="dd-filter">
-      ${chip('Semua', '', TABEL_WAJIB.length)}
-      ${chip('Lengkap', 'ok', hitung.lengkap)}
-      ${chip('Sebagian', 'warn', hitung.sebagian)}
-      ${chip('Kosong', 'muted', hitung.kosong)}
-      ${chip('Terkunci', 'lock', hitung.terkunci)}
+  // filter chip — BERFUNGSI. Sebelumnya hanya hiasan: 38 kartu tanpa cara
+  // menyaring, padahal pekerjaan operator justru "mana yang masih kosong".
+  + `<div class="dd-filter" role="group" aria-label="Saring tabel menurut status">
+      ${chipAktif('Semua', 'semua', TABEL_WAJIB.length, true)}
+      ${chipAktif('Lengkap', 'ok', hitung.lengkap)}
+      ${chipAktif('Sebagian', 'warn', hitung.sebagian)}
+      ${chipAktif('Kosong', 'muted', hitung.kosong)}
+      ${chipAktif('Otomatis', 'lock', hitung.hitung || (LIVE.siap
+        ? LIVE.tabel.filter((t) => t.status === 'hitung').length : 0))}
+      ${chipAktif('Terkunci', 'lock', hitung.terkunci)}
     </div>`
-  // tabel wajib
-  + `<div class="card">
-      <div class="card-head"><h2>Tabel wajib</h2>
-        <span class="note">${TABEL_WAJIB.length} baris · ${belum} belum lengkap</span></div>
-      <div style="overflow-x:auto">
-      <table class="tbl">
-        <thead>${tblHead}</thead>
-        <tbody>${rowsWajib}</tbody>
-      </table>
-      </div>
-    </div>`
+  // tabel wajib — bentuk kartu per kriteria
+  + `<div class="dd-section-head"><h3>Tabel wajib</h3>
+      <span class="n">${TABEL_WAJIB.length} tabel · ${belum} belum lengkap</span></div>`
+  + bagianKrit
   // tabel tidak berlaku
   + `<div class="dd-section-head"><h3>Tidak berlaku untuk jenjang ini</h3>
       <span class="n">${TABEL_NA.length} tabel — khusus jenjang dengan tahap profesi</span></div>`
@@ -239,3 +331,58 @@ function page(state) {
 }
 
 export default page;
+
+/* ── filter status (delegasi, dipasang sekali) ───────────────────────
+ * Kartu disaring di DOM, bukan render ulang: render ulang akan memanggil
+ * API lagi dan kehilangan posisi gulir saat orang sedang membandingkan.
+ */
+if (typeof document !== 'undefined' && !window.__ddSaring) {
+  window.__ddSaring = true;
+
+  document.addEventListener('click', (e) => {
+    const tombol = e.target.closest('[data-saring]');
+    if (!tombol) return;
+
+    const saring = tombol.dataset.saring;
+    const semua = document.querySelectorAll('.kt-bagian');
+    if (!semua.length) return;
+
+    // Penanda pilihan
+    document.querySelectorAll('[data-saring]').forEach((b) => {
+      const on = b === tombol;
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', String(on));
+    });
+
+    // Label chip berbahasa Indonesia, data-st memakai kunci internal.
+    // Tanpa peta ini "Otomatis" tidak pernah cocok dengan data-st="hitung".
+    const PETA = { otomatis: 'hitung', 'tak berlaku': 'na' };
+    const kunci = PETA[saring] || saring;
+
+    let tampil = 0;
+    document.querySelectorAll('.kt').forEach((k) => {
+      const cocok = saring === 'semua' || k.dataset.st === kunci;
+      k.hidden = !cocok;
+      if (cocok) tampil++;
+    });
+
+    // Bagian kriteria yang seluruh kartunya tersaring disembunyikan —
+    // judul kosong dengan "0 dari 7 selesai" di atasnya hanya membingungkan.
+    semua.forEach((s) => {
+      const ada = [...s.querySelectorAll('.kt')].some((k) => !k.hidden);
+      s.hidden = !ada;
+    });
+
+    // Katakan terus terang kalau tidak ada yang cocok.
+    let kosong = document.getElementById('ddKosong');
+    if (tampil === 0) {
+      if (!kosong) {
+        const wadah = document.querySelector('.dd-filter')?.parentElement;
+        wadah?.insertAdjacentHTML('beforeend',
+          '<div class="callout info" id="ddKosong"><p>Tidak ada tabel dengan status ini.</p></div>');
+      }
+    } else {
+      kosong?.remove();
+    }
+  });
+}

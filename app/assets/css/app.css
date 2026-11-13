@@ -240,6 +240,7 @@ body.belum-masuk .sb-toggle { display: none; }
 .badge.warn { color: var(--warn); background: var(--warn-bg); }
 .badge.bad { color: var(--bad); background: var(--bad-bg); }
 .badge.lock { color: var(--lock); background: var(--lock-bg); }
+.badge.hitung { color: #475467; background: #EAEDF2; }
 .badge.na { color: var(--ink3); background: #F9FAFB; border: 1px solid var(--bd); }
 .badge.muted { color: var(--ink2); background: var(--dv); }
 
@@ -1049,3 +1050,108 @@ body.belum-masuk .sb-toggle { display: none; }
 .dok-grup-kepala:hover .dok-grup-nama { text-decoration: underline; }
 .dok-panah { font-size: 12px; color: var(--ink2); }
 .dok-grup-kepala { padding: 2px 0; }
+
+/* ══ Data Dukung: bentuk kartu ══════════════════════════════════════
+   38 baris tabel = 1845px gulir tanpa titik pandang, dan judul tabel
+   (sampai 90 karakter) terpotong di kolom. Kartu memberi satu titik
+   pandang per tabel + ruang untuk judul utuh. */
+.dd-section-head { margin: 22px 0 10px; }
+.dd-section-head h3 { font-size: var(--fs-md); font-weight: 700; }
+.dd-section-head .n { font-size: var(--fs-xs); color: var(--ink3); margin-left: 8px; }
+
+.kt-bagian { margin-bottom: 20px; }
+.kt-bagian-kepala {
+  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+  padding-bottom: 6px; margin-bottom: 10px; border-bottom: 1px solid var(--bd);
+}
+.kt-bagian-kepala h2 {
+  font-size: var(--fs-sm); font-weight: 700; display: flex; align-items: center; gap: 8px;
+}
+.kt-krit {
+  font-family: var(--mono, ui-monospace, monospace); font-size: 10.5px; font-weight: 700;
+  color: var(--ind); background: var(--ind-bg, #EEF0FF);
+  padding: 2px 6px; border-radius: 4px; letter-spacing: .02em;
+}
+.kt-bagian-kepala .note { font-size: var(--fs-xs); color: var(--ink3); margin-left: auto; }
+
+/* auto-fill: 1 kolom di layar sempit, 2-3 di desktop. minmax(260px,1fr)
+   supaya judul panjang tidak memaksa kartu melebar. */
+.kt-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.kt {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 12px 10px; border: 1px solid var(--bd); border-radius: 9px;
+  background: var(--surf); min-width: 0;
+  transition: border-color .15s, box-shadow .15s;
+}
+.kt:hover { border-color: var(--ink4, #98A2B3); box-shadow: 0 1px 3px rgba(16,24,40,.06); }
+
+/* Tepi kiri berwarna per status: satu pandangan, tanpa membaca badge. */
+.kt-ok      { border-left: 3px solid var(--ok); }
+.kt-warn    { border-left: 3px solid var(--warn); }
+.kt-bad     { border-left: 3px solid var(--bad); }
+.kt-lock    { border-left: 3px solid var(--lock, #6941C6); }
+/* Tabel otomatis: abu-biru, BUKAN ungu. Ungu di halaman ini berarti
+   "terkunci" (butuh izin untuk mengubah) — arti yang sama sekali lain. */
+.kt-hitung  { border-left: 3px solid #7F8CA3; }
+.kt-muted   { border-left: 3px solid var(--bd); }
+
+.kt-kepala { display: flex; align-items: center; gap: 8px; }
+.kt-kode {
+  font-family: var(--mono, ui-monospace, monospace); font-size: 10.5px; font-weight: 700;
+  color: var(--ink2); letter-spacing: .02em;
+}
+.kt-kepala .badge { margin-left: auto; }
+
+/* Judul: 2 baris penuh lalu dipotong. Dipotong dengan garis bawah halus,
+   bukan dipaksa 1 baris — judul tabel sampai 90 karakter. */
+.kt-judul {
+  font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; margin: 0;
+  color: var(--ink);
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+  overflow: hidden; flex: 1;
+}
+
+.kt-bilah {
+  height: 4px; border-radius: 99px; background: var(--dv); overflow: hidden;
+}
+.kt-bilah i { display: block; height: 100%; background: var(--ok); border-radius: 99px; }
+.kt-warn .kt-bilah i { background: var(--warn); }
+.kt-bad  .kt-bilah i { background: var(--bad); }
+/* Tabel otomatis tidak punya penyebut: garis putus-putus, bukan bilah kosong.
+   Bilah kosong terbaca "belum dikerjakan" padahal tidak ada yang dikerjakan. */
+.kt-bilah-auto {
+  background: repeating-linear-gradient(90deg, var(--bd) 0 4px, transparent 4px 8px);
+}
+
+.kt-kaki {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  margin-top: 2px;
+}
+.kt-metrik { font-size: var(--fs-xs); font-weight: 700; color: var(--ink2); }
+.kt-metrik span { font-weight: 500; color: var(--ink3); }
+.kt-metrik-auto { font-weight: 500; color: var(--ink3); }
+.kt-aksi {
+  font-size: var(--fs-xs); font-weight: 600; color: var(--ind);
+  text-decoration: none; white-space: nowrap;
+}
+.kt-aksi:hover { text-decoration: underline; }
+
+.kt-judul { min-height: calc(3 * 1.35em); }
+.kt-kaki { min-height: 18px; }
+.kt-aksi-sekunder { color: var(--ink3); font-weight: 500; }
+.kt-aksi-sekunder:hover { color: var(--ind); }
+
+/* Chip filter yang bisa diklik. Bedakan dari chip statis: `on` = pilihan aktif. */
+.dd-filter .chip { cursor: pointer; font: inherit; font-size: var(--fs-xs);
+  background: var(--surf); border: 1px solid var(--bd); border-radius: 99px;
+  padding: 5px 11px; color: var(--ink2); transition: border-color .12s, background .12s; }
+.dd-filter .chip.on { background: var(--ind-bg, #EEF0FF); border-color: var(--ind);
+  color: var(--ind); }
+.dd-filter .chip.on b { color: var(--ind); }
+.dd-filter .chip:focus-visible { outline: 2px solid var(--ind); outline-offset: 2px; }
+/* Kartu tersembunyi filter: `hidden` harus menang atas display:flex. */
+.kt[hidden], .kt-bagian[hidden] { display: none !important; }
