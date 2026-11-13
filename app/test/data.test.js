@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { validate, D, ANGKATAN, MATRIX, IZIN, WAHANA, KOLEKSI, PENGGUNA, INSTRUMEN, TABEL } from '../assets/js/data.js';
 import { render, sidebar } from '../assets/js/views.js';
+import { SESI } from '../assets/js/api.js';
 
 test('data konsisten', () => {
   assert.equal(validate(), true);
@@ -50,6 +51,10 @@ test('digital tidak punya eksemplar', () => {
 });
 
 test('semua halaman render tanpa token rusak', () => {
+  // Login palsu: halaman & sidebar sekarang membaca izin dari sesi. Di Node
+  // tidak ada server, jadi SESI diisi langsung — bukan melewati gerbang.
+  SESI.data = { nama: 'Uji', peran: 'Admin UPPS', prodi: 'Kebidanan',
+    akses: { Isi: 1, Impor: 1, Verifikasi: 1, 'Buka kunci': 1, 'Kelola pengguna': 1, Ekspor: 1 } };
   const pages = ['dashboard', 'ringkasan', 'identitas', 'periode', 'dosen', 'keuangan',
     'kerjasama', 'pengguna', 'mahasiswa', 'kurikulum', 'sarana', 'pustaka', 'uji',
     'survei', 'datadukung', 'dokumen', 'konsistensi'];

@@ -1,6 +1,6 @@
 /* datadukung — daftar 38 tabel data dukung: 32 wajib + 6 tidak berlaku.
  * Dipisah dari views.js agar bisa dikerjakan paralel. */
-import { LIVE, api } from '../api.js';
+import { LIVE, api, boleh } from '../api.js';
 import {
   esc, nf, head, strip, badge, card, cardHead, callout, dlist, mbar, empty, table, TABEL, TABEL_NA,
   D, KRITERIA, INSTRUMEN, PERIODE, DATA_PER, PRODI, ANGKATAN, MK, PENGGUNA,
@@ -90,14 +90,20 @@ function rowWajib(t) {
   const fieldCls = ft < ftt && ft > 0 ? ' style="color:var(--warn)"' : '';
   const fieldTxt = ft === 0 ? `<span class="muted">0/${ftt}</span>` : `${ft}/${ftt}`;
 
-  // Aksi: kalau belum lengkap dan tidak terkunci, tombolnya benar-benar mengisi.
-  // operator = siapa yang sedang login; untuk demo dipatok.
-  const bisaIsi = st !== 'terkunci' && ft < ftt;
+  // Aksi: tombol hanya dirender kalau peran ini memang boleh. Tombol yang
+  // selalu ditolak server lebih buruk daripada tombol yang tidak ada.
+  const bisaIsi = st !== 'terkunci' && ft < ftt && boleh('Isi');
+  const kunciBtn = (boleh('Verifikasi') && ft >= ftt && st !== 'terkunci')
+    ? `<button class="lnk dd-kunci" data-kunci="${no}">Kunci →</button>` : '';
+  const bukaBtn = (boleh('Buka kunci') && st === 'terkunci')
+    ? `<button class="lnk dd-buka" data-buka="${no}">Buka kunci →</button>` : '';
   const aksi = st === 'terkunci'
-    ? `<span class="lnk muted">Terkunci</span>`
+    ? `<span class="lnk muted">Terkunci</span>${bukaBtn}`
     : bisaIsi
       ? `<button class="lnk dd-isi" data-isi="${no}" data-total="${ftt}" data-kini="${ft}">Isi →</button>`
-      : `<button class="lnk" data-nav="datadukung">Buka →</button>`;
+      : `<button class="lnk" data-nav="datadukung">Lihat →</button>`;
+  const aksiFinal = `${aksi}${kunciBtn}`;
+
 
   return `<tr>
     <td class="num strong">T-${no.padStart(2, '0')}</td>
@@ -105,7 +111,7 @@ function rowWajib(t) {
     <td class="num"><span class="kc-kode">${k}</span></td>
     <td>${badge(ST_KIND[st], ST_TXT[st])}</td>
     <td class="r num"${fieldCls}>${fieldTxt}</td>
-    <td class="r">${aksi}</td>
+    <td class="r">${aksiFinal}</td>
   </tr>`;
 }
 

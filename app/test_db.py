@@ -76,6 +76,46 @@ def test_total_tutup():
     db.reset(SEED)
 
 
+# ── sesi & izin ─────────────────────────────────────────────────────
+# Aturan yang diuji: identitas datang dari token, bukan dari body. Operator
+# tidak boleh memverifikasi pekerjaannya sendiri, verifikator tidak boleh
+# mengisi, dan akun nonaktif tidak pernah dapat sesi.
+def test_sandi():
+    db.reset(SEED)
+    s, kode, _ = db.masuk("Siti Rahmawati, S.ST., M.Keb", db.SANDI_DEMO)
+    assert kode == 200 and s["nama"].startswith("Siti"), (kode, s)
+    db.keluar(s["token"])
+    assert db.masuk("Siti Rahmawati, S.ST., M.Keb", "salah")[1] == 401
+    assert db.masuk("Hasnawati, A.Md.Keb", db.SANDI_DEMO)[1] == 403
+
+
+def test_pemisahan_tugas():
+    db.reset(SEED)
+    op, _, _ = db.masuk("Siti Rahmawati, S.ST., M.Keb", db.SANDI_DEMO)
+    vf, _, _ = db.masuk("Dr. Maimunah, M.Keb", db.SANDI_DEMO)
+    adm, _, _ = db.masuk("Dr. Ir. Zulfikar, M.Pd", db.SANDI_DEMO)
+    assert db.wajib(op, "Isi") is None
+    assert db.wajib(op, "Verifikasi")[0] == 403      # tidak menyetujui kerja sendiri
+    assert db.wajib(vf, "Verifikasi") is None
+    assert db.wajib(vf, "Isi")[0] == 403
+    assert db.wajib(adm, "Buka kunci") is None
+    assert db.wajib(None, "Isi")[0] == 401           # tanpa token, tidak ada aksi
+    for s in (op, vf, adm):
+        db.keluar(s["token"])
+
+
+def test_jejak_pakai_nama_sesi():
+    db.reset(SEED)
+    s, _, _ = db.masuk("Siti Rahmawati, S.ST., M.Keb", db.SANDI_DEMO)
+    db.isi_tabel("23", 6, s["nama"])
+    log = db.riwayat(1)[0]
+    assert log["oleh"] == "Siti Rahmawati, S.ST., M.Keb", log
+    assert log["sebelum"] is not None and log["sesudah"] == "6", log
+    db.keluar(s["token"])
+    db.reset(SEED)
+
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

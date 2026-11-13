@@ -10,7 +10,7 @@
  */
 import { icon } from './icons.js';
 import { D, PRODI, PERIODE, INSTRUMEN, KONSISTENSI_GAGAL, esc, badge } from './pagekit.js';
-import { R } from './api.js';
+import { R, boleh } from './api.js';
 
 export { esc, nf, head, strip, badge, card, cardHead, callout, dlist, mbar, empty, table }
   from './pagekit.js';
@@ -70,7 +70,8 @@ const navItems = () => [
     ['dosen', 'Dosen & Tendik', 'F-06', 'lecturer'],
     ['keuangan', 'Keuangan', 'F-17', 'finance'],
     ['kerjasama', 'Kerja Sama', 'F-19', 'partner'],
-    ['pengguna', 'Pengguna & Hak Akses', 'F-22', 'access'],
+    // hanya peran yang boleh mengelola akun yang melihat menunya
+    ...(boleh('Kelola pengguna') ? [['pengguna', 'Pengguna & Hak Akses', 'F-22', 'access']] : []),
   ]],
   ['PRODI', 'prodi', [
     ['mahasiswa', 'Mahasiswa', 'F-05', 'student'],

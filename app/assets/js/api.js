@@ -25,17 +25,27 @@ async function call(method, path, body) {
 }
 
 export const api = {
+  saya: () => call('GET', '/api/saya'),
+  masuk: (nama, sandi, prodi) => call('POST', '/api/masuk', { nama, sandi, prodi }),
+  keluar: () => call('POST', '/api/keluar', {}),
   ringkasan: () => call('GET', '/api/ringkasan'),
   tabel: () => call('GET', '/api/tabel'),
   riwayat: (batas = 20) => call('GET', `/api/riwayat?batas=${batas}`),
   pengguna: () => call('GET', '/api/pengguna'),
-  ubahPeran: (id, peran, status, oleh) => call('POST', `/api/pengguna/${id}/peran`, { peran, status, oleh }),
-  pisahPeran: (id, oleh) => call('POST', `/api/pengguna/${id}/pisah`, { oleh }),
-  isi: (kode, terisi, oleh) => call('POST', `/api/tabel/${kode}/isi`, { terisi, oleh }),
-  kunci: (kode, oleh) => call('POST', `/api/tabel/${kode}/kunci`, { oleh }),
-  buka: (kode, oleh) => call('POST', `/api/tabel/${kode}/buka`, { oleh }),
+  ubahPeran: (id, peran, status) => call('POST', `/api/pengguna/${id}/peran`, { peran, status }),
+  pisahPeran: (id) => call('POST', `/api/pengguna/${id}/pisah`, {}),
+  isi: (kode, terisi) => call('POST', `/api/tabel/${kode}/isi`, { terisi }),
+  kunci: (kode) => call('POST', `/api/tabel/${kode}/kunci`, {}),
+  buka: (kode) => call('POST', `/api/tabel/${kode}/buka`, {}),
   reset: () => call('POST', '/api/reset', {}),
 };
+
+/* Sesi aktif. `oleh` tidak lagi dikirim dari klien: server mengambil nama dari
+   cookie, jadi tombol tidak bisa mengaku jadi orang lain. */
+export const SESI = { data: null };
+export const boleh = (aksi) => SESI.data?.akses?.[aksi] === 1;
+export const hanyaLihat = (aksi) => SESI.data?.akses?.[aksi] === 2;
+
 
 /* Simpan ringkasan terakhir supaya halaman bisa membacanya tanpa await.
    Dashboard merender sinkron; angka DB diambil di boot lalu diperbarui
@@ -47,7 +57,11 @@ export const api = {
 export const LIVE = { ringkasan: null, tabel: null, pengguna: null, siap: false };
 
 export async function hydrate() {
-  const [r, t, p] = await Promise.all([api.ringkasan(), api.tabel(), api.pengguna()]);
+  const [s, r, t, p] = await Promise.all([
+    api.saya(), api.ringkasan(), api.tabel(), api.pengguna(),
+  ]);
+  SESI.data = s ? s.sesi : null;
+  SESI.aksi = s ? s.aksi : [];
   if (r && t) {
     LIVE.ringkasan = r;
     LIVE.tabel = t;
@@ -56,6 +70,7 @@ export async function hydrate() {
   }
   return LIVE.siap ? LIVE : null;
 }
+
 
 /* Angka siap pakai: pakai DB kalau ada, kalau tidak jatuh ke konstanta. */
 export const R = (kunci, cadangan) =>

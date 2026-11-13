@@ -1,8 +1,12 @@
-/* Router hash-based + shell. Tanpa framework, tanpa build step. */
+/* Router hash-based + shell. Tanpa framework, tanpa build step.
+ *
+ * Gerbang: tanpa sesi, yang tampil hanya layar masuk. Ini bukan sekadar
+ * menyembunyikan tombol — server juga menolak POST tanpa token.
+ */
 import { validate, PRODI } from './data.js';
 import { sidebar, render } from './views.js';
 import { animateIn } from './anim.js';
-import { hydrate, api } from './api.js';
+import { hydrate, api, SESI, boleh } from './api.js';
 
 const state = { prodi: 'Kebidanan' };
 const PAGES = new Set(['dashboard', 'ringkasan', 'identitas', 'periode', 'dosen', 'keuangan',
@@ -15,17 +19,98 @@ const page = () => {
   return PAGES.has(h) ? h : 'dashboard';
 };
 
+/* "Siti Rahmawati, S.ST., M.Keb" → "SR" */
+const inisial = (nama) =>
+  nama.replace(/,.*$/, '').split(/\s+/).map((w) => w[0]).join('').slice(0, 2).toUpperCase();
+
 const setDrawer = (open) => {
   document.body.classList.toggle('sb-open', open);
   $('#sbToggle')?.setAttribute('aria-expanded', String(open));
 };
 
+/* ── layar masuk ──────────────────────────────────────────────────── */
+function layarMasuk(pesan) {
+  document.body.classList.add('belum-masuk');
+  $('.main').innerHTML = `
+    <div class="masuk">
+      <div class="masuk-kiri">
+        <div class="brand-mark big"></div>
+        <h1>Sistem Akreditasi LAM-PTKes</h1>
+        <p>Data dukung 38 tabel, 78 dokumen pendukung, satu tempat.
+           Setiap aksi tercatat atas nama akun yang masuk.</p>
+        <div class="masuk-demo">
+          <div class="nav-label">AKUN DEMO · sandi <code>demo1234</code></div>
+          <button data-akun="Siti Rahmawati, S.ST., M.Keb">Siti — Operator Kebidanan</button>
+          <button data-akun="Dr. Maimunah, M.Keb">Maimunah — Verifikator Kebidanan</button>
+          <button data-akun="Dr. Ir. Zulfikar, M.Pd">Zulfikar — Admin UPPS</button>
+          <button data-akun="Prof. Dr. Cut Zahriah, M.Pd">Cut Zahriah — Pimpinan (lihat)</button>
+        </div>
+      </div>
+      <form class="masuk-kanan" id="formMasuk">
+        <h2>Masuk</h2>
+        <label>Nama akun
+          <input name="nama" autocomplete="username" required
+                 placeholder="Nama persis seperti di daftar pengguna">
+        </label>
+        <label>Sandi
+          <input name="sandi" type="password" autocomplete="current-password"
+                 value="demo1234" required>
+        </label>
+        <label>Prodi yang dibuka
+          <select name="prodi">${PRODI.map((p) => `<option>${p.nama}</option>`).join('')}</select>
+        </label>
+        <p class="masuk-err" role="alert">${pesan || ''}</p>
+        <button class="btn btn-main" type="submit">Masuk</button>
+      </form>
+    </div>`;
+  document.querySelector('.sidebar').innerHTML = '';
+}
+
+function pasangMasuk() {
+  const form = $('#formMasuk');
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const f = new FormData(form);
+    const btn = form.querySelector('button[type=submit]');
+    btn.disabled = true;
+    const r = await api.masuk(f.get('nama'), f.get('sandi'), f.get('prodi'));
+    btn.disabled = false;
+    if (!r || r.error) {
+      form.querySelector('.masuk-err').textContent = r?.error || 'Server tidak merespons.';
+      return;
+    }
+    const prodi = r.sesi.prodi;
+    if (PRODI.some((p) => p.nama === prodi)) state.prodi = prodi;
+    await hydrate();
+    document.body.classList.remove('belum-masuk');
+    paint();
+  });
+
+  document.querySelectorAll('[data-akun]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const inp = form.querySelector('[name=nama]');
+      inp.value = b.dataset.akun;
+      form.querySelector('[name=sandi]').focus();
+    });
+  });
+}
+
+/* ── shell ────────────────────────────────────────────────────────── */
 function paint() {
+  if (!SESI.data) return;
   const p = page();
   $('.sidebar').innerHTML = sidebar(p, state);
   $('.main').innerHTML = render(p, state);
   animateIn($('.main'));
   document.title = `${p === 'dashboard' ? 'Dashboard' : p} · LAM-PTKes`;
+  const av = $('#whoAvatar');
+  if (av) av.textContent = inisial(SESI.data.nama);
+  const nm = $('#whoNama');
+  if (nm) nm.textContent = SESI.data.nama.replace(/,.*$/, '');
+  const pr = $('#whoPeran');
+  if (pr) pr.textContent = `${SESI.data.peran} · ${SESI.data.prodi || '—'}`;
+  $('#btnKeluar')?.removeAttribute('hidden');
+
   setDrawer(false);
   window.scrollTo(0, 0);
 }
@@ -77,13 +162,22 @@ function boot() {
       return;
     }
 
+    const keluar = e.target.closest('[data-keluar]');
+    if (keluar) {
+      api.keluar().then(async () => {
+        SESI.data = null;
+        await hydrate();
+        if (!SESI.data) layarMasuk('Sudah keluar.');
+      });
+      return;
+    }
+
     // ── kelola akun: pisahkan peran / aktif-nonaktif ──
     const pisah = e.target.closest('[data-pisah]');
     if (pisah) {
-      const id = pisah.dataset.pisah;
       if (!confirm('Pisahkan peran akun ini? Verifikator dipertahankan, Operator dihapus dari akun ini.')) return;
       pisah.disabled = true;
-      api.pisahPeran(id, 'Dr. Ir. Zulfikar').then(async (r) => {
+      api.pisahPeran(pisah.dataset.pisah).then(async (r) => {
         if (!r || r.error) { pisah.disabled = false; alert(r?.error || 'Gagal.'); return; }
         await hydrate();
         paint();
@@ -93,12 +187,35 @@ function boot() {
 
     const tog = e.target.closest('[data-id][data-status]');
     if (tog) {
-      const id = tog.dataset.id;
       const status = tog.dataset.status;
       if (status === 'nonaktif' && !confirm('Nonaktifkan akun ini? Riwayat pengisiannya tetap disimpan.')) return;
       tog.disabled = true;
-      api.ubahPeran(id, null, status, 'Dr. Ir. Zulfikar').then(async (r) => {
+      api.ubahPeran(tog.dataset.id, null, status).then(async (r) => {
         if (!r || r.error) { tog.disabled = false; alert(r?.error || 'Gagal.'); return; }
+        await hydrate();
+        paint();
+      });
+      return;
+    }
+
+    // ── verifikasi (kunci tabel) — hanya peran ber-"Verifikasi" ──
+    const kunci = e.target.closest('[data-kunci]');
+    if (kunci) {
+      if (!confirm(`Kunci T-${kunci.dataset.kunci}? Setelah dikunci isian ditolak sampai Admin UPPS membuka.`)) return;
+      kunci.disabled = true;
+      api.kunci(kunci.dataset.kunci).then(async (r) => {
+        if (!r || r.error) { kunci.disabled = false; alert(r?.error || 'Gagal.'); return; }
+        await hydrate();
+        paint();
+      });
+      return;
+    }
+
+    const buka = e.target.closest('[data-buka]');
+    if (buka) {
+      buka.disabled = true;
+      api.buka(buka.dataset.buka).then(async (r) => {
+        if (!r || r.error) { buka.disabled = false; alert(r?.error || 'Gagal.'); return; }
         await hydrate();
         paint();
       });
@@ -108,9 +225,9 @@ function boot() {
     // ── isi tabel: satu prompt, satu POST, lalu muat ulang angka ──
     const isi = e.target.closest('[data-isi]');
     if (isi) {
+      if (!boleh('Isi')) { alert(`Peran ${SESI.data?.peran || '—'} tidak boleh mengisi.`); return; }
       const kode = isi.dataset.isi;
       const total = +isi.dataset.total;
-      const kini = +isi.dataset.kini;
       const jwb = prompt(`Tabel ${kode}: berapa field terisi dari ${total}?`, String(total));
       if (jwb === null) return;
       const n = Number(jwb);
@@ -119,7 +236,7 @@ function boot() {
         return;
       }
       isi.disabled = true;
-      api.isi(kode, n, 'Siti Rahmawati').then(async (r) => {
+      api.isi(kode, n).then(async (r) => {
         if (!r) { isi.disabled = false; alert('Gagal menyimpan — server tidak merespons.'); return; }
         if (r.error) { isi.disabled = false; alert(r.error); return; }
         await hydrate();
@@ -136,14 +253,14 @@ function boot() {
   });
 
   window.addEventListener('hashchange', paint);
-  paint();
 
-  // Ambil angka dari SQLite. Kalau server tidak jalan / db kosong, hydrate()
-  // mengembalikan null dan halaman tetap pakai angka statis data.js — app
-  // tidak boleh blank hanya karena backend belum siap.
+  // Cek sesi dulu, baru render. Tanpa sesi: layar masuk, bukan dashboard.
   hydrate().then((live) => {
-    if (!live) return;
-    document.body.dataset.live = '1';
+    if (!SESI.data) { layarMasuk(); pasangMasuk(); return; }
+    document.body.classList.remove('belum-masuk');
+    if (live) document.body.dataset.live = '1';
+    const prodiSesi = SESI.data.prodi;
+    if (PRODI.some((p) => p.nama === prodiSesi)) state.prodi = prodiSesi;
     paint();
   });
 }

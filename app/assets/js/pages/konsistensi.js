@@ -25,6 +25,7 @@ const ATURAN = [
     'Tabel 30', D.wahana, 'wahana', 'Tabel 19', D.mouValid + ' berlaku', 'wahana',
     'lulus', '—', 'Tabel 30 mendaftar ' + D.wahana + ' wahana, ' + D.mouValid + ' dengan MoU berlaku. ' +
       D.mouExpired + ' kedaluwarsa tidak dihitung ke kapasitas. Tabel 30 khusus tahap profesi — prodi ini punya tahap profesi, jadi aturan ini berlaku.'],
+
   ['R5', 'Lokasi sarana unik, tidak dihitung ganda',
     'Tabel 15', SARANA.length, 'jenis', 'Tabel 28', SARANA.length, 'jenis',
     'lulus', '—', 'Tabel 15 dan Tabel 28 mendaftar lokasi sarana yang sama, tidak ada duplikasi. Setiap ruangan hanya muncul sekali.'],
@@ -90,7 +91,7 @@ function page(state) {
           `<span class="num">${esc(r[6])} ${esc(r[7])}</span>`,
           r[8] === 'gagal'
             ? `<span class="kon-selisih" style="color:var(--bad)">${selisih(r)}</span>`
-            : `<span class="kon-selisih" style="color:var(--ok)">0</span>`,
+            : `<span class="kon-selisih" style="color:var(--ink3)">${selisih(r) === '0' ? '0' : '—'}</span>`,
           badge(r[8] === 'gagal' ? 'bad' : 'ok', r[8]),
         ],
       })),

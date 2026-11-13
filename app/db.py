@@ -63,7 +63,26 @@ CREATE TABLE IF NOT EXISTS pengguna (
   peran          TEXT NOT NULL,
   prodi          TEXT,
   status         TEXT NOT NULL DEFAULT 'aktif',
-  aktif_terakhir TEXT
+  aktif_terakhir TEXT,
+  sandi          TEXT                           -- pbkdf2, lihat _hash()
+);
+
+-- Matriks izin: satu-satunya sumber. Sebelumnya angka 0/1/2 ini menumpang di
+-- seed.json tanpa pernah dibaca server, jadi UI dan API punya aturan berbeda.
+-- akses: 0 = tidak boleh, 1 = boleh, 2 = hanya lihat
+CREATE TABLE IF NOT EXISTS izin (
+  peran   TEXT NOT NULL,
+  aksi    TEXT NOT NULL,
+  akses   INTEGER NOT NULL,
+  PRIMARY KEY (peran, aksi)
+);
+
+CREATE TABLE IF NOT EXISTS sesi (
+  token       TEXT PRIMARY KEY,
+  pengguna_id INTEGER NOT NULL REFERENCES pengguna(id),
+  prodi       TEXT,
+  dibuat      TEXT NOT NULL,
+  kedaluwarsa TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS catatan (
@@ -98,10 +117,38 @@ def conn():
     return c
 
 
+def _migrasi(c):
+    """Tambah kolom/tabel yang belum ada di DB lama. Tidak menghapus apa pun."""
+    kolom = {r[1] for r in c.execute("PRAGMA table_info(pengguna)")}
+    if "sandi" not in kolom:
+        c.execute("ALTER TABLE pengguna ADD COLUMN sandi TEXT")
+    c.execute("CREATE TABLE IF NOT EXISTS izin (peran TEXT NOT NULL, aksi TEXT NOT NULL, "
+              "akses INTEGER NOT NULL, PRIMARY KEY (peran, aksi))")
+    c.execute("CREATE TABLE IF NOT EXISTS sesi (token TEXT PRIMARY KEY, "
+              "pengguna_id INTEGER NOT NULL REFERENCES pengguna(id), prodi TEXT, "
+              "dibuat TEXT NOT NULL, kedaluwarsa TEXT NOT NULL)")
+    # sandi belum pernah diisi -> semua akun lama pakai sandi demo
+    for r in c.execute("SELECT id, sandi FROM pengguna WHERE sandi IS NULL OR sandi=''").fetchall():
+        c.execute("UPDATE pengguna SET sandi=? WHERE id=?", (_hash(SANDI_DEMO), r["id"]))
+    c.commit()
+
+
 def init(seed_path=None):
     """Buat skema + isi seed. Idempoten: tidak menimpa data yang sudah ada."""
     c = conn()
     c.executescript(SKEMA)
+    _migrasi(c)
+    # izin & sandi diisi terpisah dari data tabel, supaya DB lama (sudah
+    # ter-seed) tetap mendapat matriks izin tanpa perlu reset.
+    if seed_path and os.path.exists(seed_path):
+        d0 = json.load(open(seed_path))
+        c.executemany(
+            "INSERT OR REPLACE INTO izin (peran, aksi, akses) VALUES (?,?,?)",
+            [(peran, aksi, akses)
+             for peran, baris in d0["matrix"].items()
+             for aksi, akses in zip(d0["izin"], baris)],
+        )
+        c.commit()
     ada = c.execute("SELECT COUNT(*) FROM tabel").fetchone()[0]
     if ada:
         c.close()
@@ -142,6 +189,15 @@ def init(seed_path=None):
         [(p["nama"], p["peran"], p["prodi"], p["status"], p["aktif_terakhir"])
          for p in d["pengguna"]],
     )
+    c.execute("UPDATE pengguna SET sandi=? WHERE sandi IS NULL OR sandi=''", (_hash(SANDI_DEMO),))
+
+    c.executemany(
+        "INSERT OR REPLACE INTO izin (peran, aksi, akses) VALUES (?,?,?)",
+        [(peran, aksi, akses)
+         for peran, baris in d["matrix"].items()
+         for aksi, akses in zip(d["izin"], baris)],
+    )
+
     c.execute("INSERT INTO catatan (waktu, oleh, aksi, entitas, kode, sesudah) "
               "VALUES (?,?,?,?,?,?)",
               ("2026-11-09T09:00", "sistem", "seed", "database", None, "seed awal"))
@@ -271,7 +327,8 @@ PERAN_BOLEH_GABUNG = {("Admin UPPS",)}   # admin memang memegang semua
 
 def daftar_pengguna():
     c = conn()
-    rows = c.execute("SELECT * FROM pengguna ORDER BY id").fetchall()
+    rows = c.execute("SELECT id, nama, peran, prodi, status, aktif_terakhir "
+                     "FROM pengguna ORDER BY id").fetchall()
     c.close()
     return [dict(r) for r in rows]
 
@@ -325,7 +382,8 @@ def ubah_pengguna(pid, peran=None, status=None, prodi=None, oleh="admin"):
          f"{r['peran']}/{r['status']}", f"{peran_baru}/{status_baru}"),
     )
     c.commit()
-    baru = c.execute("SELECT * FROM pengguna WHERE id=?", (pid,)).fetchone()
+    baru = c.execute("SELECT id, nama, peran, prodi, status, aktif_terakhir "
+                     "FROM pengguna WHERE id=?", (pid,)).fetchone()
     c.close()
     return dict(baru), 200, None
 
@@ -353,7 +411,8 @@ def pisahkan_peran(pid, oleh="admin"):
          r["peran"], "Verifikator"),
     )
     c.commit()
-    baru = c.execute("SELECT * FROM pengguna WHERE id=?", (pid,)).fetchone()
+    baru = c.execute("SELECT id, nama, peran, prodi, status, aktif_terakhir "
+                     "FROM pengguna WHERE id=?", (pid,)).fetchone()
     c.close()
     return dict(baru), 200, None
 
@@ -378,6 +437,110 @@ def riwayat(batas=50):
     rows = c.execute("SELECT * FROM catatan ORDER BY id DESC LIMIT ?", (batas,)).fetchall()
     c.close()
     return [dict(r) for r in rows]
+
+
+# ── sesi, sandi, izin ────────────────────────────────────────────────
+# ponytail: sandi pbkdf2 + cookie sesi di memori DB. Ini prototipe satu mesin;
+# kalau dipasang di jaringan, cookie butuh Secure, dan sesi pindah ke server asli.
+AKSI = ("Isi", "Impor", "Verifikasi", "Buka kunci", "Kelola pengguna", "Ekspor")
+SANDI_DEMO = "demo1234"
+
+
+def _hash(sandi, salt=None):
+    import hashlib
+    salt = salt or os.urandom(16).hex()
+    h = hashlib.pbkdf2_hmac("sha256", sandi.encode(), salt.encode(), 120_000).hex()
+    return f"{salt}${h}"
+
+
+def _cocok(disimpan, sandi):
+    salt, _, h = (disimpan or "").partition("$")
+    if not h:
+        return False
+    import hashlib
+    return hashlib.pbkdf2_hmac("sha256", sandi.encode(), salt.encode(), 120_000).hex() == h
+
+
+def _daftar_peran(peran):
+    return [p.strip().lower() for p in (peran or "").split("+") if p.strip()]
+
+
+def akses(peran, aksi):
+    """0/1/2 untuk satu aksi. Akun multi-peran dapat yang paling longgar.
+
+    Dicocokkan lewat kata kunci ("operator" ada di "Operator Prodi"), sama
+    seperti _konflik, karena data lama menulis bentuk pendek.
+    """
+    c = conn()
+    rows = c.execute("SELECT peran, akses FROM izin WHERE aksi=?", (aksi,)).fetchall()
+    c.close()
+    hasil = 0
+    for r in rows:
+        kata = r["peran"].split()[0].lower()
+        if any(kata in p for p in _daftar_peran(peran)):
+            hasil = max(hasil, r["akses"])
+    return hasil
+
+
+def masuk(nama, sandi, prodi=None):
+    """Login → token sesi. Tanpa nama yang valid, tidak ada sesi."""
+    c = conn()
+    r = c.execute("SELECT * FROM pengguna WHERE nama=?", (nama,)).fetchone()
+    if not r:
+        c.close()
+        return None, 401, "akun tidak dikenal"
+    if r["status"] == "nonaktif":
+        c.close()
+        return None, 403, "akun nonaktif"
+    if not _cocok(r["sandi"], sandi):
+        c.close()
+        return None, 401, "sandi salah"
+    import secrets
+    token = secrets.token_urlsafe(24)
+    c.execute("INSERT INTO sesi (token, pengguna_id, prodi, dibuat, kedaluwarsa) "
+              "VALUES (?,?,?,datetime('now','localtime'),datetime('now','localtime','+8 hours'))",
+              (token, r["id"], prodi or r["prodi"]))
+    c.execute("UPDATE pengguna SET aktif_terakhir='hari ini' WHERE id=?", (r["id"],))
+    c.commit()
+    sesi = {"token": token, "id": r["id"], "nama": r["nama"], "peran": r["peran"],
+            "prodi": prodi or r["prodi"], "status": r["status"]}
+    sesi["akses"] = {a: akses(r["peran"], a) for a in AKSI}
+    c.close()
+    return sesi, 200, None
+
+
+def sesi_dari(token):
+    if not token:
+        return None
+    c = conn()
+    r = c.execute("""SELECT p.*, s.prodi AS sesi_prodi FROM sesi s
+                     JOIN pengguna p ON p.id = s.pengguna_id
+                     WHERE s.token=? AND s.kedaluwarsa > datetime('now','localtime')""",
+                  (token,)).fetchone()
+    c.close()
+    if not r:
+        return None
+    sesi = {"id": r["id"], "nama": r["nama"], "peran": r["peran"],
+            "prodi": r["sesi_prodi"] or r["prodi"], "status": r["status"]}
+    sesi["akses"] = {a: akses(r["peran"], a) for a in AKSI}
+    return sesi
+
+
+def keluar(token):
+    c = conn()
+    c.execute("DELETE FROM sesi WHERE token=?", (token,))
+    c.commit()
+    c.close()
+    return {"keluar": True}
+
+
+def wajib(sesi, aksi):
+    """None kalau boleh; (kode, pesan) kalau tidak. Dipanggil server, bukan UI."""
+    if not sesi:
+        return 401, "belum masuk"
+    if akses(sesi["peran"], aksi) != 1:
+        return 403, f"peran {sesi['peran']} tidak boleh: {aksi}"
+    return None
 
 
 def reset(seed_path):
