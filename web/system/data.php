@@ -10,6 +10,10 @@ declare(strict_types=1);
  */
 
 require_once __DIR__ . '/db.php';
+// data.php memanggil periode_aktif()/status_satu_tabel()/berlaku_untuk_prodi()
+// yang tinggal di rekap.php. Dulu aman hanya karena api.php memuatnya lebih
+// dulu — di luar jalur itu fatal error. Ketergantungan ditulis di sini.
+require_once __DIR__ . '/rekap.php';
 
 /**
  * Isi field satu tabel lewat angka ringkas (dipakai UI prototipe: {terisi:n}).

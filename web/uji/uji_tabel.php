@@ -1,18 +1,45 @@
 <?php
 /**
- * Uji modul Data Dukung — tanpa HTTP, panggil fungsi langsung.
+ * Uji Data Dukung (38 tabel) — lewat jalur PRODUKSI yang masih hidup.
  *
- * Bagian akhir memakai subproses karena gerbang izin memanggil tolak() yang
- * `exit`. Di dalam satu proses, satu uji 403 akan menghentikan seluruh uji.
+ * KEPUTUSAN (b): modul `web/modul/tabel/` sudah TIDAK dipakai produksi.
+ *   grep -rn 'modul/tabel' web/ | grep -v /uji/   -> tidak ada hasil
+ *   web/router.php hanya melayani /api/* dan berkas statis dari app/;
+ *   web/index.php (front controller modul) tidak pernah dirutekan lagi.
+ *   Frontend asli `app/assets/js/pages/datadukung.js` bicara ke /api/tabel
+ *   saja (app/assets/js/api.js: tabel/isi/kunci/buka).
  *
- * Jalankan: php web/uji/uji_tabel.php
+ * Uji lama me-require modul/tabel/proses.php + merender modul/tabel/index.php,
+ * jadi ia mengukur kode mati: 3 assertion gagal karena halaman itu tidak
+ * pernah dirender lagi. Uji ini dipindahkan ke jalur yang benar-benar dipakai:
+ *
+ *   web/system/rekap.php  -> status 38 tabel + saringan kriteria (baca)
+ *   web/system/data.php   -> isi_tabel_api / kunci_tabel_api / buka_kunci_api
+ *   web/system/auth.php   -> gerbang izin (tabel `izin`, bukan tebakan)
+ *
+ * Yang tetap diuji (inti sistem, tidak boleh hilang):
+ *   1. tepat 38 tabel dukung, semuanya terbaca
+ *   2. saringan K1..K8 benar; yang tidak punya tabel jujur kosong, bukan error
+ *   3. simpan isi tabel: sel tersimpan pada kunci field Input yang benar
+ *   4. kunci -> status terkunci, dan operator tidak bisa mengisi saat terkunci
+ *   5. buka kunci oleh peran berhak berhasil
+ *
+ * Catatan: api.php bukan lapisan aturan, cuma routing. Yang diuji handler-nya,
+ * karena di situlah aturannya. `php://input` tidak bisa dipalsukan dari CLI.
+ *
+ * Semua baris/sel/audit buatan uji DIHAPUS lagi di akhir (DELETE), supaya uji
+ * lain tidak terganggu sisa data.
+ *
+ * Jalankan: LAMPTKES_ENV=lokal php web/uji/uji_tabel.php
  */
 declare(strict_types=1);
 
 ob_start();
 putenv('LAMPTKES_ENV=lokal');
-$_SERVER['REQUEST_METHOD'] = 'GET';
-require_once __DIR__ . '/../modul/tabel/proses.php';
+$_SERVER['REQUEST_METHOD'] = 'POST';
+require_once __DIR__ . '/../system/view.php';
+require_once __DIR__ . '/../system/rekap.php';
+require_once __DIR__ . '/../system/data.php';
 
 $gagal = 0;
 function cek(string $nama, bool $ok, string $detail = ''): void
@@ -28,390 +55,247 @@ $prodi = (int) qv('SELECT id FROM prodi ORDER BY id LIMIT 1');
 $per = periode_aktif($prodi);
 cek('periode aktif ada', $per !== null);
 $perId = (int) ($per['id'] ?? 0);
-$op = q1('SELECT * FROM pengguna WHERE email = ?', ['siti@bbg.ac.id']);
-$vf = q1('SELECT * FROM pengguna WHERE email = ?', ['maimunah@bbg.ac.id']);
-$admin = q1('SELECT * FROM pengguna WHERE email = ?', ['zulfikar@bbg.ac.id']);
+
+$op = q1('SELECT * FROM pengguna WHERE email = ?', ['siti@bbg.ac.id']);        // OPERATOR prodi 1
+$vf = q1('SELECT * FROM pengguna WHERE email = ?', ['maimunah@bbg.ac.id']);    // VERIFIKATOR prodi 1
+$admin = q1('SELECT * FROM pengguna WHERE email = ?', ['zulfikar@bbg.ac.id']); // ADMIN, tanpa prodi
 cek('akun uji lengkap', $op && $vf && $admin);
 
-/** Bersihkan semua jejak uji untuk tabel-tabel yang dipakai. */
-function bersih(array $kode, int $prodi, int $perId): void
+$sesiOp = ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id']];
+$sesiVf = ['pengguna_id' => (int) $vf['id'], 'prodi_id' => (int) $vf['prodi_id']];
+$sesiAd = ['pengguna_id' => (int) $admin['id'], 'prodi_id' => $prodi];
+
+/** Bersihkan jejak uji. `audit` append-only, jadi dipangkas per id, bukan TRUNCATE. */
+$auditAwal = (int) qv('SELECT COALESCE(MAX(id),0) FROM audit', [], 0);
+function bersih(array $kode, int $prodi, int $perId, int $auditAwal): void
 {
     foreach ($kode as $k) {
         ex('DELETE FROM baris_tabel WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ?',
-            [$k, $prodi, $perId]);
+            [$k, $prodi, $perId]);   // sel ikut terhapus (FK ON DELETE CASCADE)
     }
+    ex('DELETE FROM audit WHERE id > ?', [$auditAwal]);
 }
-
 $kodeUji = ['01', '02'];
-bersih($kodeUji, $prodi, $perId);
+bersih($kodeUji, $prodi, $perId, $auditAwal);
 
-/* ── 1. spesifikasi: hanya field Input yang boleh disimpan ───────── */
-$f01 = tabel_field('01');
-$input01 = array_values(array_filter($f01, fn($f) => $f['asal'] === 'Input'));
-$lain01 = array_values(array_filter($f01, fn($f) => $f['asal'] !== 'Input'));
-cek('tabel 01 punya 3 field Input', count($input01) === 3, (string) count($input01));
-cek('tabel 01 punya 9 field non-Input', count($lain01) === 9, (string) count($lain01));
-cek('12 field tabel 01 = 3 + 9', count($f01) === 12, (string) count($f01));
-$urut01 = array_map('intval', array_column($f01, 'urut'));
-$urutUrut = $urut01;
-sort($urutUrut);
-cek('field urut menaik', $urut01 === $urutUrut, implode(',', $urut01));
-
-/* ── 2. isi tabel 01 lengkap -> status 'lengkap' ─────────────────── */
-$post = ['sel' => [1 => [
-    'no' => '1',
-    'praktikum_judul_modul' => 'Asuhan Persalinan Normal',
-    'praktikum_jam_pelaksanaan' => '4',
-    // Field non-Input sengaja dikirim: harus DIABAIKAN, bukan disimpan.
-    'kode_dan_nama_mk' => 'BDN101',
-    'rps' => 'ada',
-]]];
-$hasil = tabel_simpan('01', $prodi, $perId, $post);
-$s = status_satu_tabel('01', $prodi, $perId);
-cek('simpan 1 baris', $hasil['baris'] === 1, json_encode($hasil));
-cek('3 sel tersimpan (field non-Input diabaikan)', $hasil['sel'] === 3, json_encode($hasil));
-cek('status jadi lengkap', $s['status'] === 'lengkap', json_encode($s));
-cek('terisi = total (3/3)', $s['terisi'] === 3 && $s['total'] === 3, "{$s['terisi']}/{$s['total']}");
-
-$bid = (int) qv('SELECT id FROM baris_tabel WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ? AND urut = 1',
-    ['01', $prodi, $perId]);
-$kunciTersimpan = q('SELECT field_kunci FROM sel WHERE baris_id = ? ORDER BY field_kunci', [$bid]);
-cek('hanya kunci field Input yang tersimpan',
-    array_column($kunciTersimpan, 'field_kunci') === ['no', 'praktikum_jam_pelaksanaan', 'praktikum_judul_modul'],
-    implode(',', array_column($kunciTersimpan, 'field_kunci')));
-
-// tipe angka -> nilai_angka terisi, nilai_teks NULL
-$angka = q1('SELECT nilai_angka, nilai_teks FROM sel WHERE baris_id = ? AND field_kunci = ?',
-    [$bid, 'praktikum_jam_pelaksanaan']);
-cek('field angka masuk nilai_angka', $angka !== null && (float) $angka['nilai_angka'] === 4.0
-    && $angka['nilai_teks'] === null, json_encode($angka));
-
-// tipe Teks -> nilai_teks, bukan nilai_angka
-$teks = q1('SELECT nilai_angka, nilai_teks FROM sel WHERE baris_id = ? AND field_kunci = ?', [$bid, 'no']);
-cek('field Teks masuk nilai_teks', $teks !== null && $teks['nilai_teks'] === '1'
-    && $teks['nilai_angka'] === null, json_encode($teks));
-
-/* ── 3. simpan ulang = update, bukan duplikat ───────────────────── */
-tabel_simpan('01', $prodi, $perId, ['sel' => [1 => ['no' => '1b']]]);
-cek('simpan ulang tidak menambah baris',
-    (int) qv('SELECT COUNT(*) FROM baris_tabel WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ?',
-        ['01', $prodi, $perId]) === 1);
-cek('nilai diperbarui',
-    qv('SELECT nilai_teks FROM sel WHERE baris_id = ? AND field_kunci = ?', [$bid, 'no']) === '1b');
-cek('sel lain tidak hilang',
-    (int) qv('SELECT COUNT(*) FROM sel WHERE baris_id = ?', [$bid]) === 3);
-
-/* ── 4. sel dikosongkan -> DIHAPUS, bukan disimpan kosong ───────── */
-tabel_simpan('01', $prodi, $perId, ['sel' => [1 => ['no' => '   ']]]);
-cek('sel kosong dihapus dari tabel', qv('SELECT COUNT(*) FROM sel WHERE baris_id = ? AND field_kunci = ?',
-    [$bid, 'no']) === 0);
-cek('tidak ada sel bernilai string kosong',
-    (int) qv('SELECT COUNT(*) FROM sel WHERE baris_id = ? AND nilai_teks = ""', [$bid]) === 0);
-$s = status_satu_tabel('01', $prodi, $perId);
-cek('hapus 1 sel -> sebagian', $s['status'] === 'sebagian' && $s['terisi'] === 2, json_encode($s));
-
-/* ── 5. banyak baris (tabel 1 = 239 baris) ─────────────────────── */
-$banyak = ['sel' => []];
-for ($i = 2; $i <= 5; $i++) {
-    $banyak['sel'][$i] = ['no' => (string) $i, 'praktikum_judul_modul' => 'Modul ' . $i];
-}
-$h = tabel_simpan('01', $prodi, $perId, $banyak);
-cek('tambah 4 baris sekaligus', $h['baris'] === 4, json_encode($h));
-cek('5 baris tersimpan',
-    (int) qv('SELECT COUNT(*) FROM baris_tabel WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ?',
-        ['01', $prodi, $perId]) === 5);
-$barisDibaca = tabel_baris('01', $prodi, $perId);
-cek('tabel_baris mengembalikan 5 baris urut', count($barisDibaca) === 5
-    && array_column($barisDibaca, 'urut') === [1, 2, 3, 4, 5]);
-cek('nilai ikut terbaca per baris',
-    ($barisDibaca[1]['nilai']['praktikum_judul_modul']['nilai_teks'] ?? null) === 'Modul 2');
-
-// hapus baris lewat daftar hapus[]
-$h = tabel_simpan('01', $prodi, $perId, ['hapus' => ['5']]);
-cek('hapus baris 5', $h['dibuang'] === 1 && count(tabel_baris('01', $prodi, $perId)) === 4, json_encode($h));
-cek('sel baris terhapus ikut hilang (cascade)',
-    (int) qv('SELECT COUNT(*) FROM sel s JOIN baris_tabel b ON b.id = s.baris_id
-              WHERE b.tabel_kode = ? AND b.prodi_id = ? AND b.periode_id = ? AND b.urut = 5',
-        ['01', $prodi, $perId]) === 0);
-
-// hapus[] hanya menyebut baris yang dibuang -> baris lain tidak tersentuh
-$h = tabel_simpan('01', $prodi, $perId, ['hapus' => ['0', 'x'], 'sel' => [4 => ['no' => '4']]]);
-cek('hapus[] tanpa nomor sah tidak menghapus apa pun',
-    $h['dibuang'] === 0 && count(tabel_baris('01', $prodi, $perId)) === 4);
-
-/* ── 6. validasi tipe ───────────────────────────────────────────── */
-$tolakAngka = null;
-try {
-    tabel_simpan('01', $prodi, $perId, ['sel' => [1 => ['praktikum_jam_pelaksanaan' => 'empat']]]);
-} catch (TabelDitolak $x) {
-    $tolakAngka = $x;
-}
-cek('angka salah ditolak 422', $tolakAngka !== null && $tolakAngka->kodeHttp === 422,
-    $tolakAngka ? $tolakAngka->getMessage() : 'tidak melempar');
-cek('angka salah tidak menyimpan apa pun',
-    qv('SELECT nilai_angka FROM sel WHERE baris_id = ? AND field_kunci = ?',
-        [$bid, 'praktikum_jam_pelaksanaan']) !== null);
-
-// desimal koma diterima (operator Indonesia mengetik 3,5)
-tabel_simpan('01', $prodi, $perId, ['sel' => [1 => ['praktikum_jam_pelaksanaan' => '3,5']]]);
-cek('desimal koma diterima', (float) qv('SELECT nilai_angka FROM sel WHERE baris_id = ? AND field_kunci = ?',
-    [$bid, 'praktikum_jam_pelaksanaan']) === 3.5);
-
-$tgl = tabel_tgl_ke_angka('2025-11-13');
-cek('tanggal -> YYYYMMDD angka', $tgl === 20251113, (string) $tgl);
-cek('YYYYMMDD -> tanggal kembali', tabel_angka_ke_tgl('20251113') === '2025-11-13');
-cek('tanggal mustahil ditolak', (function (): bool {
-    try { tabel_tgl_ke_angka('2025-02-30'); return false; } catch (TabelDitolak $x) { return $x->kodeHttp === 422; }
-})());
-
-// tanggal disimpan di nilai_angka lewat simpan
-$fTanggal = qv("SELECT tabel_kode FROM spec_field WHERE tipe = 'tanggal' AND asal = 'Input' LIMIT 1");
-if ($fTanggal !== null) {
-    $ff = q1("SELECT kunci FROM spec_field WHERE tabel_kode = ? AND tipe = 'tanggal' AND asal = 'Input' LIMIT 1",
-        [$fTanggal]);
-    tabel_simpan((string) $fTanggal, $prodi, $perId, ['sel' => [1 => [$ff['kunci'] => '2024-03-01']]]);
-    cek('tanggal tersimpan sebagai angka di nilai_angka',
-        (float) qv('SELECT s.nilai_angka FROM sel s JOIN baris_tabel b ON b.id = s.baris_id
-                    WHERE b.tabel_kode = ? AND b.prodi_id = ? AND b.periode_id = ? AND s.field_kunci = ?',
-            [$fTanggal, $prodi, $perId, $ff['kunci']]) === 20240301.0, 'tabel ' . $fTanggal);
-    bersih([(string) $fTanggal], $prodi, $perId);
-}
-
-/* ── 7. tabel 02 (hanya 1 field Input) tetap aturan yang sama ───── */
-$h = tabel_simpan('02', $prodi, $perId, ['sel' => [1 => ['no' => '1', 'jumlah_mahasiswa' => '999']]]);
-cek('Hitung tidak tersimpan di tabel 02', $h['sel'] === 1
-    && qv('SELECT COUNT(*) FROM sel s JOIN baris_tabel b ON b.id = s.baris_id
-           WHERE b.tabel_kode = ? AND b.prodi_id = ? AND b.periode_id = ? AND s.field_kunci = ?',
-        ['02', $prodi, $perId, 'jumlah_mahasiswa']) === 0, json_encode($h));
-
-/* ── 8. kunci ───────────────────────────────────────────────────── */
-// isi semua field Input dulu supaya lengkap
-$semua = [];
-foreach ($input01 as $f) {
-    $semua[$f['kunci']] = $f['tipe'] === 'angka' ? '2' : 'x';
-}
-foreach ([1, 2, 3, 4] as $u) {
-    tabel_simpan('01', $prodi, $perId, ['sel' => [$u => $semua]]);
-}
-cek('lengkap sebelum dikunci', status_satu_tabel('01', $prodi, $perId)['status'] === 'lengkap');
-
-$n = tabel_kunci('01', $prodi, $perId, (int) $admin['id']);
-cek('kunci menulis semua baris', $n === 4, (string) $n);
-cek('status jadi terkunci', status_satu_tabel('01', $prodi, $perId)['status'] === 'terkunci');
-
-$ditolak = null;
-try {
-    tabel_simpan('01', $prodi, $perId, ['sel' => [1 => ['no' => '99']]]);
-} catch (TabelDitolak $x) {
-    $ditolak = $x;
-}
-cek('tabel terkunci menolak isi (403)', $ditolak !== null && $ditolak->kodeHttp === 403,
-    $ditolak ? $ditolak->getMessage() : 'tidak melempar');
-cek('isi saat terkunci tidak berubah',
-    qv('SELECT nilai_teks FROM sel WHERE baris_id = ? AND field_kunci = ?', [$bid, 'no']) === 'x');
-
-// kunci tabel yang belum lengkap -> 409, bukan diam-diam terkunci
-bersih(['02'], $prodi, $perId);
-$ditolak = null;
-try {
-    tabel_kunci('02', $prodi, $perId, (int) $admin['id']);
-} catch (TabelDitolak $x) {
-    $ditolak = $x;
-}
-cek('kunci saat belum lengkap ditolak 409', $ditolak !== null && $ditolak->kodeHttp === 409,
-    $ditolak ? $ditolak->getMessage() : 'tidak melempar');
-
-tabel_buka('01', $prodi, $perId);
-cek('buka kunci mengembalikan status sebagian/lengkap',
-    in_array(status_satu_tabel('01', $prodi, $perId)['status'], ['sebagian', 'lengkap'], true));
-
-/* ── 9. tabel tak dikenal & tidak berlaku ───────────────────────── */
-$ditolak = null;
-try { tabel_info('99'); } catch (TabelDitolak $x) { $ditolak = $x; }
-cek('kode tabel tak dikenal -> 404', $ditolak !== null && $ditolak->kodeHttp === 404);
-
-ex('UPDATE prodi SET punya_tahap_profesi = 0 WHERE id = ?', [$prodi]);
-$ditolak = null;
-try {
-    tabel_simpan('30', $prodi, $perId, ['sel' => [1 => ['no' => '1']]]);
-} catch (TabelDitolak $x) {
-    $ditolak = $x;
-}
-cek('tabel khusus profesi ditolak bila prodi tanpa tahap profesi',
-    $ditolak !== null && $ditolak->kodeHttp === 409, $ditolak ? $ditolak->getMessage() : 'tidak melempar');
-ex('UPDATE prodi SET punya_tahap_profesi = 1 WHERE id = ?', [$prodi]);
-
-/* ── 10. gerbang izin (tabel `izin`, bukan tebakan) ─────────────── */
-cek('operator boleh ISI', akses('ISI', $op) === 1);
-cek('verifikator tidak boleh ISI', akses('ISI', $vf) === 0);
-cek('verifikator boleh VERIFIKASI', akses('VERIFIKASI', $vf) === 1);
-cek('operator tidak boleh BUKA_KUNCI', akses('BUKA_KUNCI', $op) === 0);
-cek('admin boleh BUKA_KUNCI', akses('BUKA_KUNCI', $admin) === 1);
-
-/* ── 11. gerbang di modul, lewat subproses (tolak() = exit) ─────── */
 /**
- * Jalankan modul sebagai satu request CLI: sesi disuntik, POST disiapkan.
- * Dipisah proses karena wajib() memanggil tolak() yang meng-exit proses.
+ * Jalankan satu potongan kode sebagai satu "request" CLI: sesi disuntik.
+ * Dipisah proses karena (a) tolak() memanggil exit, (b) pengguna() di-cache
+ * static per proses sehingga ganti peran dalam satu proses tidak sah.
  */
-function jalankan(array $sesi, array $get, array $post): string
+function jalankan(array $sesi, string $kode): string
 {
     $berkas = tempnam(sys_get_temp_dir(), 'ujitabel') . '.php';
     file_put_contents($berkas, '<?php
 declare(strict_types=1);
 ob_start();
 putenv("LAMPTKES_ENV=lokal");
-$_SERVER["REQUEST_METHOD"] = ' . var_export($post ? 'POST' : 'GET', true) . ';
-require "' . __DIR__ . '/../system/view.php";
+$_SERVER["REQUEST_METHOD"] = "POST";
+require ' . var_export(__DIR__ . '/../system/view.php', true) . ';
+require ' . var_export(__DIR__ . '/../system/data.php', true) . ';
 sesi_mulai();
 $_SESSION = ' . var_export($sesi, true) . ';
-$_GET = ' . var_export($get, true) . ';
-$_POST = ' . var_export($post, true) . ';
-require "' . __DIR__ . '/../modul/tabel/index.php";
+register_shutdown_function(fn() => fwrite(STDERR, "KODE=" . http_response_code()));
+' . $kode . '
 while (ob_get_level() > 0) { ob_end_flush(); }
 ');
-    $keluar = shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($berkas) . ' 2>&1');
+    $keluar = (string) shell_exec(escapeshellarg(PHP_BINARY) . ' ' . escapeshellarg($berkas) . ' 2>&1');
     @unlink($berkas);
-    return (string) $keluar;
+    return $keluar;
 }
 
-$csrf = 'ujicsrftoken0123456789abcdef';
-
-// verifikator mencoba mengisi -> 403
-$out = jalankan(
-    ['pengguna_id' => (int) $vf['id'], 'prodi_id' => (int) $vf['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'simpan'],
-    ['_csrf' => $csrf, 't' => '01', 'sel' => [1 => ['no' => '7']]]
-);
-cek('verifikator ditolak saat isi (403 di modul)', str_contains($out, 'tidak boleh: ISI'), substr(trim($out), 0, 160));
-
-// operator tanpa token CSRF -> 419
-$out = jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'simpan'],
-    ['_csrf' => 'salah', 't' => '01', 'sel' => [1 => ['no' => '7']]]
-);
-cek('CSRF salah ditolak 419', str_contains($out, 'Token form kedaluwarsa'), substr(trim($out), 0, 160));
-
-// operator mencoba kunci -> 403
-$out = jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'kunci', 't' => '01'],
-    ['_csrf' => $csrf, 't' => '01']
-);
-cek('operator tidak boleh mengunci (403)', str_contains($out, 'tidak boleh: VERIFIKASI'), substr(trim($out), 0, 160));
-
-// operator mengisi saat baris terkunci -> ditolak. Penolakan lewat alihkan()
-// (header + exit), dan header tidak terbaca di CLI — jadi bukti diambil dari
-// datanya: tidak ada sel yang berubah.
-tabel_kunci('01', $prodi, $perId, (int) $admin['id']);
-jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'simpan'],
-    ['_csrf' => $csrf, 't' => '01', 'sel' => [1 => ['no' => '8']]]
-);
-cek('simpan lewat modul saat terkunci tidak mengubah data',
-    qv('SELECT nilai_teks FROM sel WHERE baris_id = ? AND field_kunci = ?', [$bid, 'no']) === 'x'
-    && count(tabel_baris('01', $prodi, $perId)) === 4);
-tabel_buka('01', $prodi, $perId);
-
-// halaman daftar & form benar-benar merender (bukan fatal error)
-$out = jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'index'],
-    []
-);
-cek('daftar 38 tabel merender', str_contains($out, '38 tabel instrumen')
-    && substr_count($out, 'class="tf-nomor num"') === 38, 'jumlah baris: ' . substr_count($out, 'class="tf-nomor num"'));
-
-$out = jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'index', 'k' => 'K1'],
-    []
-);
-cek('saringan K1 jujur: tidak punya tabel', str_contains($out, 'tidak punya tabel data dukung'));
-
-// form kosong: 1 baris draf + 1 template, 3 field Input per baris
-bersih(['01'], $prodi, $perId);
-$out = jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'lihat', 't' => '01'],
-    []
-);
-$nKontrol = substr_count($out, 'class="tf-input"');
-$nBaris = substr_count($out, '<fieldset class="tf-baris');
-// 9 field Master tabel 01 muncul sekali di rincian field + sekali per baris
-$nMaster = substr_count($out, 'tf-sumber tf-master');
-cek('form tabel 01: 3 kontrol isian per baris', $nBaris > 0 && $nKontrol === 3 * $nBaris,
-    "kontrol $nKontrol, baris $nBaris");
-cek('field non-Input tampil read-only dengan label sumber', $nMaster === 9 * ($nBaris + 1),
-    "master $nMaster, baris $nBaris");
-cek('template baris baru tersedia', str_contains($out, 'id="tfTemplate"'));
-
-/* ── 12. tabel panjang: 239 baris tidak boleh dirender sekaligus ── */
-// max_input_vars PHP memotong POST diam-diam (~1000 field). Tabel 38 punya 9
-// field Input, jadi 239 baris x 9 = 2151 field: tanpa batas, isian terakhir
-// hilang tanpa pesan. Halaman harus dipecah.
-$banyak = ['sel' => []];
-for ($i = 1; $i <= 120; $i++) {
-    $banyak['sel'][$i] = ['no' => (string) $i];
+/** Ambil objek JSON dari keluaran subproses (abaikan KODE=... di stderr). */
+function json_dari(string $keluaran): array
+{
+    if (preg_match('/\{.*\}/s', $keluaran, $m)) {
+        $d = json_decode($m[0], true);
+        return is_array($d) ? $d : [];
+    }
+    return [];
 }
-tabel_simpan('01', $prodi, $perId, $banyak);
-cek('120 baris tersimpan', count(tabel_baris('01', $prodi, $perId)) === 120);
 
-$out = jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'lihat', 't' => '01'],
-    []
-);
-// template baris baru juga berupa <fieldset class="tf-baris" — jangan dihitung
-$nBarisHal1 = substr_count($out, '<fieldset class="tf-baris') - 1;
-cek('halaman 1 hanya 50 baris', $nBarisHal1 === TABEL_PER_HAL, (string) $nBarisHal1);
-cek('ada navigasi halaman (120/50 = 3)', str_contains($out, 'halaman 1 dari 3')
-    && substr_count($out, '&amp;hal=') === 3);
+/* ── 1. tepat 38 tabel, semuanya terbaca ────────────────────────── */
+$kodeDb = array_column(q('SELECT kode FROM tabel_dukung ORDER BY nomor'), 'kode');
+cek('38 tabel dukung di skema', count($kodeDb) === 38, (string) count($kodeDb));
+$harap = array_map(fn($n) => str_pad((string) $n, 2, '0', STR_PAD_LEFT), range(1, 38));
+cek('kode 01..38 lengkap tanpa lubang', $kodeDb === $harap, implode(',', array_diff($harap, $kodeDb)));
 
-$out = jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'lihat', 't' => '01', 'hal' => 3],
-    []
-);
-cek('halaman 3 berisi 20 baris sisa', substr_count($out, '<fieldset class="tf-baris') - 1 === 20,
-    (string) (substr_count($out, '<fieldset class="tf-baris') - 1));
-cek('hal di luar jangkauan dijepit, bukan halaman kosong',
-    str_contains($out, 'halaman 3 dari 3'));
-$out = jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'lihat', 't' => '01', 'hal' => 999],
-    []
-);
-cek('hal=999 jatuh ke halaman terakhir', str_contains($out, 'halaman 3 dari 3'));
+$semua = rekap_semua_tabel($prodi, $perId);
+cek('rekap_semua_tabel mengembalikan 38 baris', count($semua) === 38, (string) count($semua));
 
-// baris di halaman 3 bisa disimpan tanpa menyentuh baris halaman 1
-ex('DELETE FROM sel WHERE baris_id = (SELECT id FROM (SELECT id FROM baris_tabel WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ? AND urut = 101) x)', ['01', $prodi, $perId]);
-tabel_simpan('01', $prodi, $perId, ['sel' => [101 => ['no' => '101b']]]);
-cek('simpan 1 baris halaman 3 tidak mengubah baris lain',
-    qv('SELECT nilai_teks FROM sel WHERE baris_id = (SELECT id FROM baris_tabel WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ? AND urut = 101) AND field_kunci = ?',
-        ['01', $prodi, $perId, 'no']) === '101b'
-    && count(tabel_baris('01', $prodi, $perId)) === 120);
-bersih(['01'], $prodi, $perId);
-cek('JS tambah baris dimuat', str_contains($out, 'aset/js/tabel.js'));
+$sah = ['lengkap', 'terkunci', 'sebagian', 'kosong', 'hitung', 'na'];
+$rusak = [];
+foreach ($semua as $t) {
+    if (!in_array($t['status'] ?? null, $sah, true)) {
+        $rusak[] = $t['kode'] . '=' . ($t['status'] ?? 'null');
+    }
+}
+cek('semua 38 tabel terbaca dengan status sah', $rusak === [], implode(',', $rusak));
 
-// tabel 05: semua field non-Input -> peringatan, bukan form kosong tanpa penjelasan
-$out = jalankan(
-    ['pengguna_id' => (int) $op['id'], 'prodi_id' => (int) $op['prodi_id'], 'csrf' => $csrf],
-    ['m' => 'tabel', 'a' => 'lihat', 't' => '05'],
-    []
-);
-cek('tabel tanpa field Input memberi penjelasan', str_contains($out, 'Tidak ada field isian'));
+// Field Input tiap tabel harus terhitung; 6 tabel tanpa Input berstatus 'hitung'.
+$totalInput = (int) qv("SELECT COUNT(*) FROM spec_field WHERE asal = 'Input'", [], 0);
+$jumlahTotal = array_sum(array_column($semua, 'total'));
+cek('field Input 38 tabel = spec di DB', $jumlahTotal === $totalInput, "$jumlahTotal/$totalInput");
+cek('tepat 6 tabel tanpa field Input (status hitung)',
+    count(array_filter($semua, fn($t) => $t['status'] === 'hitung')) === 6);
+cek('semua tabel berlaku untuk prodi bertahap profesi',
+    count(array_filter($semua, fn($t) => $t['berlaku'])) === 38);
+
+// 6 tabel khusus profesi: aturannya dibaca dari skema, bukan ditebak.
+cek('tabel khusus profesi berlaku bila prodi punya tahap profesi', berlaku_untuk_prodi('30', $prodi) === true);
+cek('tabel khusus profesi ditolak untuk prodi tanpa tahap profesi', berlaku_untuk_prodi('30', 999999) === false);
+cek('tabel biasa tidak bergantung tahap profesi', berlaku_untuk_prodi('01', 999999) === true);
+
+/* ── 2. saringan per kriteria K1..K8 ────────────────────────────── */
+$rekapK = rekap_per_kriteria($prodi, $perId);
+$kodeK = array_column($rekapK, 'kriteria');
+cek('8 kriteria K1..K8 selalu dikembalikan', $kodeK === ['K1', 'K2', 'K3', 'K4', 'K5', 'K6', 'K7', 'K8'],
+    implode(',', $kodeK));
+cek('jumlah tabel per kriteria = 38', array_sum(array_column($rekapK, 'total')) === 38,
+    (string) array_sum(array_column($rekapK, 'total')));
+
+// K1 hanya dokumen: HARUS jujur kosong (total 0), bukan error / bukan hilang.
+$k1 = $rekapK[0];
+cek('K1 jujur kosong: total 0 tabel', $k1['kriteria'] === 'K1' && $k1['total'] === 0, json_encode($k1));
+$tabelK1 = array_values(array_filter($semua, fn($t) => $t['kriteria'] === 'K1'));
+cek('K1 tidak punya tabel (hasil saringan kosong, bukan galat)', $tabelK1 === []);
+
+// Tiap kriteria dibandingkan dengan kebenaran DB, bukan angka yang diketik.
+$hitungDb = [];
+$salah = [];
+foreach (q('SELECT kriteria, COUNT(*) n FROM tabel_dukung GROUP BY kriteria') as $r) {
+    $hitungDb[$r['kriteria']] = (int) $r['n'];
+}
+foreach ($rekapK as $k) {
+    if (($hitungDb[$k['kriteria']] ?? 0) !== $k['total']) {
+        $salah[] = $k['kriteria'] . '=' . $k['total'] . '/' . ($hitungDb[$k['kriteria']] ?? 0);
+    }
+}
+cek('tabel per kriteria cocok dengan DB', $salah === [], implode(',', $salah));
+
+// Saringan yang dipakai UI: saring kode_kriteria, hasilnya harus sama dengan DB.
+$salahKode = [];
+foreach ($hitungDb as $krit => $n) {
+    $kodeDariDb = array_column(q('SELECT kode FROM tabel_dukung WHERE kriteria = ? ORDER BY nomor', [$krit]), 'kode');
+    $kodeDariRekap = array_column(array_values(array_filter($semua, fn($t) => $t['kriteria'] === $krit)), 'kode');
+    if ($kodeDariDb !== $kodeDariRekap) {
+        $salahKode[] = $krit;
+    }
+}
+cek('saringan kriteria mengembalikan kode yang benar', $salahKode === [], implode(',', $salahKode));
+
+// Kriteria tanpa tabel: saringan mengembalikan daftar kosong, tidak melempar.
+$filterK1 = array_values(array_filter($semua, fn($t) => $t['kriteria'] === 'K1'));
+cek('saringan kriteria kosong tidak error', is_array($filterK1) && $filterK1 === []);
+
+/* ── 3. simpan isi tabel: sel di kunci field Input yang benar ───── */
+$input01 = array_map('strval', array_column(
+    q("SELECT kunci FROM spec_field WHERE tabel_kode = '01' AND asal = 'Input' ORDER BY urut"), 'kunci'));
+cek('tabel 01 punya 3 field Input', count($input01) === 3, implode(',', $input01));
+
+$h = json_dari(jalankan($sesiOp, 'echo json_encode(isi_tabel_api("01", 3, "uji"));'));
+cek('isi 3 field tabel 01', ($h['field_terisi'] ?? -1) === 3 && ($h['field_total'] ?? -1) === 3, json_encode($h));
+// data.php mengembalikan `status` sebagai string (bukan objek status_satu_tabel).
+cek('status jadi lengkap', ($h['status'] ?? '') === 'lengkap', json_encode($h));
+
+$kunciSel = array_column(q(
+    'SELECT s.field_kunci FROM sel s JOIN baris_tabel b ON b.id = s.baris_id
+     WHERE b.tabel_kode = ? AND b.prodi_id = ? AND b.periode_id = ? ORDER BY s.field_kunci',
+    ['01', $prodi, $perId]), 'field_kunci');
+$harapSel = $input01;
+sort($harapSel);
+cek('sel tersimpan pada kunci field Input yang benar', $kunciSel === $harapSel,
+    implode(',', $kunciSel));
+$bid = (int) qv('SELECT id FROM baris_tabel WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ? ORDER BY urut LIMIT 1',
+    ['01', $prodi, $perId]);
+cek('tidak ada sel di luar field Input (Master/Hitung tidak disimpan)',
+    (int) qv('SELECT COUNT(*) FROM sel s JOIN baris_tabel b ON b.id = s.baris_id
+              LEFT JOIN spec_field f ON f.tabel_kode = b.tabel_kode AND f.kunci = s.field_kunci
+              WHERE b.tabel_kode = ? AND b.prodi_id = ? AND b.periode_id = ? AND f.asal <> "Input"',
+        ['01', $prodi, $perId], 0) === 0);
+
+// Klamp: mustahil "lengkap dengan 99/3".
+$h = json_dari(jalankan($sesiOp, 'echo json_encode(isi_tabel_api("01", 99, "uji"));'));
+cek('terisi diklamp ke jumlah field', ($h['field_terisi'] ?? -1) === 3, json_encode($h));
+
+// Kosongkan: status kembali kosong, sel memang dihapus bukan disimpan "".
+$h = json_dari(jalankan($sesiOp, 'echo json_encode(isi_tabel_api("01", 0, "uji"));'));
+cek('isi 0 mengosongkan tabel', ($h['field_terisi'] ?? -1) === 0 && ($h['status'] ?? '') === 'kosong',
+    json_encode($h));
+cek('tidak ada sel bernilai string kosong',
+    (int) qv('SELECT COUNT(*) FROM sel s JOIN baris_tabel b ON b.id = s.baris_id
+              WHERE b.tabel_kode = ? AND b.prodi_id = ? AND b.periode_id = ? AND s.nilai_teks = ""',
+        ['01', $prodi, $perId], 0) === 0);
+
+$h = json_dari(jalankan($sesiOp, 'echo json_encode(isi_tabel_api("99", 1, "uji"));'));
+cek('kode tabel tak dikenal ditolak jujur', str_contains((string) ($h['error'] ?? ''), 'tabel tidak ada'),
+    json_encode($h));
+
+/* ── 4. kunci: status terkunci, operator tidak bisa mengisi ─────── */
+$h = json_dari(jalankan($sesiVf, 'echo json_encode(kunci_tabel_api("02", "uji"));'));
+cek('kunci saat belum lengkap ditolak', str_contains((string) ($h['error'] ?? ''), 'belum lengkap'),
+    json_encode($h));
+cek('tabel 02 tetap tidak terkunci', (int) qv(
+    'SELECT COUNT(*) FROM baris_tabel WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ? AND dikunci_oleh IS NOT NULL',
+    ['02', $prodi, $perId], 0) === 0);
+
+jalankan($sesiOp, 'echo json_encode(isi_tabel_api("01", 3, "uji"));');
+$h = json_dari(jalankan($sesiVf, 'echo json_encode(kunci_tabel_api("01", "verifikator"));'));
+cek('kunci tabel lengkap berhasil', ($h['kode'] ?? '') === '01' && ($h['dikunci_oleh'] ?? '') === 'verifikator',
+    json_encode($h));
+cek('status jadi terkunci', status_satu_tabel('01', $prodi, $perId)['status'] === 'terkunci');
+cek('baris ditandai dikunci_oleh pengguna berhak',
+    (int) qv('SELECT dikunci_oleh FROM baris_tabel WHERE id = ?', [$bid], 0) === (int) $vf['id']);
+
+$h = json_dari(jalankan($sesiOp, 'echo json_encode(isi_tabel_api("01", 0, "uji"));'));
+cek('operator tidak bisa mengisi saat terkunci', str_contains((string) ($h['error'] ?? ''), 'dikunci oleh'),
+    json_encode($h));
+cek('isi saat terkunci tidak mengubah data',
+    (int) qv('SELECT COUNT(*) FROM sel s JOIN baris_tabel b ON b.id = s.baris_id
+              WHERE b.tabel_kode = ? AND b.prodi_id = ? AND b.periode_id = ?', ['01', $prodi, $perId], 0) === 3
+    && status_satu_tabel('01', $prodi, $perId)['status'] === 'terkunci');
+cek('kunci tercatat di audit',
+    (int) qv("SELECT COUNT(*) FROM audit WHERE aksi = 'kunci' AND entitas = 'tabel' AND entitas_id = '01'",
+        [], 0) >= 1);
+
+/* ── 5. buka kunci oleh peran yang berhak ───────────────────────── */
+cek('operator tidak boleh BUKA_KUNCI', akses('BUKA_KUNCI', $op) === 0);
+cek('verifikator tidak boleh BUKA_KUNCI', akses('BUKA_KUNCI', $vf) === 0);
+cek('admin boleh BUKA_KUNCI', akses('BUKA_KUNCI', $admin) === 1);
+cek('operator boleh ISI', akses('ISI', $op) === 1);
+cek('verifikator tidak boleh ISI', akses('ISI', $vf) === 0);
+cek('verifikator boleh VERIFIKASI', akses('VERIFIKASI', $vf) === 1);
+
+// Gerbang dijalankan sebagai request terpisah: tolak() memanggil exit.
+$out = jalankan($sesiOp, 'wajib("BUKA_KUNCI"); echo json_encode(["lolos" => true]);');
+cek('wajib(BUKA_KUNCI) menolak operator 403',
+    str_contains($out, 'tidak boleh: BUKA_KUNCI') && str_contains($out, 'KODE=403'), substr(trim($out), 0, 160));
+$out = jalankan($sesiVf, 'wajib("ISI"); echo json_encode(["lolos" => true]);');
+cek('wajib(ISI) menolak verifikator 403',
+    str_contains($out, 'tidak boleh: ISI') && str_contains($out, 'KODE=403'), substr(trim($out), 0, 160));
+$out = jalankan($sesiOp, 'wajib("ISI"); echo json_encode(["lolos" => true]);');
+cek('wajib(ISI) meloloskan operator', str_contains($out, '"lolos":true'), substr(trim($out), 0, 160));
+
+$h = json_dari(jalankan($sesiAd, 'echo json_encode(buka_kunci_api("01", "admin"));'));
+cek('admin membuka kunci berhasil', ($h['terbuka'] ?? false) === true, json_encode($h));
+cek('status kembali lengkap setelah dibuka', status_satu_tabel('01', $prodi, $perId)['status'] === 'lengkap');
+cek('dikunci_oleh dikosongkan', (int) qv(
+    'SELECT COUNT(*) FROM baris_tabel WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ? AND dikunci_oleh IS NOT NULL',
+    ['01', $prodi, $perId], 0) === 0);
+
+// Setelah dibuka, operator bisa mengisi lagi.
+$h = json_dari(jalankan($sesiOp, 'echo json_encode(isi_tabel_api("01", 1, "uji"));'));
+cek('setelah buka kunci operator bisa mengisi lagi',
+    ($h['field_terisi'] ?? -1) === 1 && ($h['status'] ?? '') === 'sebagian', json_encode($h));
 
 /* ── bersihkan ──────────────────────────────────────────────────── */
-bersih(['01', '02'], $prodi, $perId);
+bersih($kodeUji, $prodi, $perId, $auditAwal);
 cek('data uji bersih: 0 baris tabel 01/02',
     (int) qv('SELECT COUNT(*) FROM baris_tabel WHERE tabel_kode IN ("01","02") AND prodi_id = ? AND periode_id = ?',
-        [$prodi, $perId]) === 0);
+        [$prodi, $perId], 0) === 0);
 cek('data uji bersih: 0 sel yatim',
-    (int) qv('SELECT COUNT(*) FROM sel s LEFT JOIN baris_tabel b ON b.id = s.baris_id WHERE b.id IS NULL') === 0);
-// Agent lain mengisi tabel lain di DB yang sama; yang diperiksa hanya tabel
-// milik uji ini.
+    (int) qv('SELECT COUNT(*) FROM sel s LEFT JOIN baris_tabel b ON b.id = s.baris_id WHERE b.id IS NULL', [], 0) === 0);
+cek('data uji bersih: audit uji dipangkas', (int) qv('SELECT COUNT(*) FROM audit WHERE id > ?', [$auditAwal], 0) === 0);
 cek('tabel 01/02 kembali kosong', status_satu_tabel('01', $prodi, $perId)['status'] === 'kosong'
     && status_satu_tabel('02', $prodi, $perId)['status'] === 'kosong');
 

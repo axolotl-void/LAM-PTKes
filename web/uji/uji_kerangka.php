@@ -3,7 +3,39 @@
  * Uji kerangka: komponen tampilan + dashboard + ringkasan.
  * Tanpa server HTTP — fungsi dan modul dipanggil langsung.
  *
- * Jalankan: php web/uji/uji_kerangka.php
+ * ── KEPUTUSAN: ini uji REGRESI, bukan uji fitur produksi ─────────────────
+ *
+ * Sejak frontend disajikan dari `app/` (HTML/CSS/JS milik klien, byte-identik)
+ * lewat `web/router.php`, satu-satunya pintu produksi adalah:
+ *
+ *   /api/…   -> web/api.php        (JSON saja, tidak pernah mencetak HTML)
+ *   sisanya  -> berkas statis dari folder app/
+ *
+ * `web/index.php` dan seluruh berkas di `web/modul/` TIDAK dipanggil router
+ * itu. Jadi `web/tampilan/kerangka/komponen.php` — yang di-require
+ * web/index.php baris 52 dan oleh 20+ berkas modul — saat ini BUKAN kode
+ * produksi.
+ *
+ * Uji ini SENGAJA DIPERTAHANKAN, bukan dihapus:
+ *
+ *  1. Komponen ini disimpan sebagai RUJUKAN MARKUP: kelas CSS-nya
+ *     (`card`, `card-head`, `strip`, `tbl`, `callout`, `tbar`) memang harus
+ *     sama dengan yang dipakai `app/assets/css/app.css`. Kalau markup di sini
+ *     melenceng, rujukan desainnya ikut bohong.
+ *  2. ESCAPING adalah jaring pengaman keamanan. `kartu()`, `tabel_html()`, dan
+ *     `callout()` menelan data dari DB (nama mahasiswa, judul tabel, nama
+ *     prodi). Kalau suatu hari ada yang menghidupkan kembali `web/index.php`,
+ *     satu `<script>` di nama orang langsung jadi XSS. Assertion escaping di
+ *     berkas ini TIDAK BOLEH dilemahkan dengan alasan apa pun.
+ *  3. `web/modul/konsistensi/fungsi.php` masih dipakai `web/api.php`, jadi
+ *     `web/modul/` belum mati seluruhnya — menghapus uji ini akan menghapus
+ *     satu-satunya penjaga markup yang tersisa kalau modul dihidupkan lagi.
+ *
+ * Karena itu: uji ini menguji kode yang disimpan, bukan kode yang melayani
+ * pengguna hari ini. Kalau `web/index.php` dihidupkan lagi, uji ini langsung
+ * berlaku sebagai uji fungsional tanpa perubahan.
+ *
+ * Jalankan: LAMPTKES_ENV=lokal php web/uji/uji_kerangka.php
  */
 declare(strict_types=1);
 
@@ -37,18 +69,38 @@ function render_modul(string $berkas, int $prodiId): string
     return (string) ob_get_clean();
 }
 
-/* ── ambil angka dari satu butir strip berdasarkan label ─────────────── */
+/* ── ambil angka dari satu butir strip berdasarkan label ───────────────
+   Markup yang dicocokkan = markup yang benar-benar dihasilkan komponen.php
+   dan yang punya gaya di app/assets/css/app.css:
+
+     <div class="cell"><div class="val "><b class="num">3</b>
+       <span class="strip-dari">/ 12</span> <span class="strip-satuan">tabel</span></div>
+       <div class="lab">Selesai</div>…
+
+   Versi lama mencari `.strip-label`/`.strip-angka` — dua kelas yang tidak
+   pernah ada di app.css. Ujinya yang salah alamat, bukan markup-nya. */
 function strip_nilai(string $html, string $label): ?array
 {
-    $pola = '~<div class="strip-label">' . preg_quote($label, '~') . '</div>\s*<div class="strip-angka">'
-          . '<b class="num">([\d.]+)</b>(?:<span class="strip-dari">/ ([\d.]+)</span>)?~';
-    if (!preg_match($pola, $html, $m)) {
+    $pola = '~<div class="lab">' . preg_quote($label, '~') . '</div>~';
+    if (!preg_match($pola, $html, $m, PREG_OFFSET_CAPTURE)) {
         return null;
     }
-    return [
-        'nilai' => (int) str_replace('.', '', $m[1]),
-        'dari'  => isset($m[2]) && $m[2] !== '' ? (int) str_replace('.', '', $m[2]) : null,
-    ];
+    // Angka & penyebut ada di .val MILIK SEL YANG SAMA, yaitu teks sebelum
+    // label ini. Ambil potongan sejak .val terakhir sebelum label.
+    $sebelum = substr($html, 0, (int) $m[0][1]);
+    $pos = strrpos($sebelum, '<div class="val');
+    if ($pos === false) {
+        return null;
+    }
+    $potong = substr($sebelum, $pos);
+    if (!preg_match('~<b class="num">([\d.]+)</b>~', $potong, $a)) {
+        return null;
+    }
+    $dari = null;
+    if (preg_match('~<span class="strip-dari">/ ([\d.]+)</span>~', $potong, $d)) {
+        $dari = (int) str_replace('.', '', $d[1]);
+    }
+    return ['nilai' => (int) str_replace('.', '', $a[1]), 'dari' => $dari];
 }
 
 /* ── sesi: user prodi 1 ─────────────────────────────────────────────── */
@@ -82,6 +134,27 @@ cek('tabel_html tanpa baris menampilkan teks kosong',
 
 $tHtml = tabel_html([['kunci' => 's', 'html' => true]], [['s' => badge_status('lengkap')]]);
 cek('tabel_html kolom html tidak meng-escape badge', str_contains($tHtml, 'badge-lengkap'));
+
+// Tanda HTML eksplisit per sel, bukan per kolom. Bentuk `['html' => ...]`
+// sebagai SATU baris dulu diperlakukan sebagai baris asosiatif dan selnya
+// hilang tanpa suara — uji ini yang menahannya.
+$tSelHtml = tabel_html(['Status'], [['html' => '<b>ok</b>']]);
+cek('tabel_html sel [html] dipertahankan', str_contains($tSelHtml, '<b>ok</b>'), $tSelHtml);
+
+// Penanda eksplisit TIDAK boleh jadi celah: tanpa 'html', array bersarang
+// tetap di-escape, bukan dipercaya.
+$tNested = tabel_html(['A'], [[['isi' => '<script>x</script>']]]);
+cek('tabel_html: isi bersarang tanpa html tetap di-escape', !str_contains($tNested, '<script>'), $tNested);
+
+// Kontrak halaman_galat: $pesan = HTML milik pemanggil. Yang diuji di sini
+// BUKAN "escape semuanya" (pemanggil memang mengirim markup), tapi bahwa
+// judul & kode tetap di-escape dan pemanggil yang menyisipkan data wajib
+// memakai e() sendiri — lihat komentar di komponen.php.
+$gEsc = halaman_galat(409, 'Kode <b>' . e('<script>x</script>') . '</b>');
+cek('halaman_galat: data lewat e() pemanggil tidak jadi tag',
+    !str_contains($gEsc, '<script>') && str_contains($gEsc, '&lt;script&gt;'), $gEsc);
+$gJudul = halaman_galat(409, 'isi', '<script>x</script>');
+cek('halaman_galat: judul di-escape', !str_contains($gJudul, '<script>'), $gJudul);
 
 $s = strip_angka([['label' => 'Selesai', 'nilai' => 3, 'dari' => 12, 'satuan' => 'tabel']]);
 cek('strip_angka menulis angka dan penyebut',
@@ -166,14 +239,22 @@ cek('ringkasan: angka tabel lengkap per kriteria = rekap_kriteria()', $cocok, $r
 /* ── 5. tidak ada sisa keluaran rusak di HTML ────────────────────────── */
 foreach (['dashboard' => $htmlDash, 'ringkasan' => $htmlRing] as $nama => $html) {
     $kotor = [];
-    foreach (['undefined', 'NaN', 'Array', 'Warning:', 'Deprecated:', 'Fatal error', '=>'] as $jejak) {
+    // '=>' SEMPAT ada di daftar ini dan selalu gagal. Penyebabnya bukan bug
+    // PHP: layout.php memuat <script> berisi arrow function (`() => {`).
+    // Itu JavaScript yang sah, bukan jejak array PHP yang bocor ke HTML.
+    // Kalau array bocor, jejaknya 'Array' — dan itu tetap diperiksa.
+    foreach (['undefined', 'NaN', 'Array', 'Warning:', 'Deprecated:', 'Fatal error'] as $jejak) {
         if (str_contains($html, $jejak)) {
             $kotor[] = $jejak;
         }
     }
     cek("$nama: tidak ada undefined/NaN/warning di HTML", $kotor === [], implode(', ', $kotor));
     cek("$nama: halaman utuh (</html>)", str_contains($html, '</html>'));
-    cek("$nama: memuat css kerangka", str_contains($html, 'aset/css/kerangka.css'));
+    // CSS yang dipasang layout.php = `assets/css/app.css` + `anim.css`, disalin
+    // apa adanya dari desain asli. `aset/css/kerangka.css` tidak pernah ada di
+    // repo (hanya disebut sekali di TUGAS-10-AGENT.md sebagai rencana), jadi
+    // mencarinya = menguji berkas yang tidak pernah dibuat.
+    cek("$nama: memuat css desain asli (app.css)", str_contains($html, 'assets/css/app.css'));
 }
 
 /* ── 6. kasus batas: prodi tanpa periode ─────────────────────────────── */
