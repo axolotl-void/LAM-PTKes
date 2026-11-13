@@ -1,0 +1,2684 @@
+[
+ {
+  "judul": "Setiap tabel instrumen dijelaskan dengan format sama:",
+  "header": [
+   "Kolom",
+   "Arti"
+  ],
+  "rows": [
+   [
+    "Field",
+    "Nama isian yang muncul di layar sistem, mengikuti label instrumen"
+   ],
+   [
+    "Tipe",
+    "Jenis input: teks, angka, tanggal, tahun akademik, pilihan, centang, persen, relasi"
+   ],
+   [
+    "Asal",
+    "Master = otomatis ambil dari data induk; Input = diketik operator; Hitung = dihitung sistem; '-' = teks tetap"
+   ],
+   [
+    "Aturan",
+    "Batasan pengisian yang harus ditegakkan sistem"
+   ]
+  ]
+ },
+ {
+  "judul": "3.1 UPPS",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "nama_pt",
+    "teks",
+    "Nama perguruan tinggi"
+   ],
+   [
+    "nama_upps",
+    "teks",
+    "Nama unit pengelola program studi"
+   ],
+   [
+    "alamat",
+    "teks",
+    "Alamat lengkap"
+   ],
+   [
+    "kota",
+    "teks",
+    "-"
+   ],
+   [
+    "telepon",
+    "teks",
+    "-"
+   ],
+   [
+    "email",
+    "teks",
+    "-"
+   ],
+   [
+    "website",
+    "teks",
+    "-"
+   ],
+   [
+    "narahubung",
+    "teks",
+    "Nama dan nomor seluler"
+   ]
+  ]
+ },
+ {
+  "judul": "3.2 Program Studi",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "nama_ps",
+    "teks",
+    "Wajib unik dalam satu UPPS"
+   ],
+   [
+    "jenjang",
+    "pilihan",
+    "D-III, Sarjana, Profesi, Sarjana Terapan, Magister, Spesialis"
+   ],
+   [
+    "bidang",
+    "teks",
+    "Kebidanan, Keperawatan, dst"
+   ],
+   [
+    "punya_tahap_profesi",
+    "ya/tidak",
+    "Menentukan tabel 4, 6, 7, 8, 11, 30 wajib diisi atau tidak"
+   ],
+   [
+    "nama_profesi_lulusan",
+    "teks",
+    "Bidan, Ners, dst"
+   ],
+   [
+    "lama_studi_semester",
+    "angka",
+    "Dasar perhitungan Tabel 5 dan 6"
+   ],
+   [
+    "nama_uji_kompetensi",
+    "teks",
+    "UKOM Bidan, Uji Kompetensi Ners, dst"
+   ],
+   [
+    "peringkat_akreditasi",
+    "pilihan",
+    "Lihat Tabel 37"
+   ],
+   [
+    "tgl_akreditasi",
+    "tanggal",
+    "-"
+   ],
+   [
+    "tgl_berakhir_akreditasi",
+    "tanggal",
+    "Dasar peringatan masa berlaku"
+   ]
+  ]
+ },
+ {
+  "judul": "3.3 Periode Akreditasi",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "tahun_ts",
+    "tahun akademik",
+    "Acuan label TS-n pada semua tabel"
+   ],
+   [
+    "tahun_ss",
+    "tahun akademik",
+    "Acuan label SS-n untuk jenjang profesi/spesialis"
+   ],
+   [
+    "tgl_pengajuan",
+    "tanggal",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "3.4 Mahasiswa",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "nim",
+    "teks",
+    "Unik"
+   ],
+   [
+    "nama",
+    "teks",
+    "-"
+   ],
+   [
+    "prodi",
+    "relasi",
+    "Ke Program Studi"
+   ],
+   [
+    "tahun_masuk",
+    "tahun akademik",
+    "-"
+   ],
+   [
+    "jalur_masuk",
+    "pilihan",
+    "Reguler, Transfer, Asing"
+   ],
+   [
+    "tahap",
+    "pilihan",
+    "Akademik, Profesi"
+   ],
+   [
+    "status",
+    "pilihan",
+    "Aktif, Lulus, DO, Cuti"
+   ],
+   [
+    "ipk",
+    "desimal",
+    "0,00 - 4,00"
+   ],
+   [
+    "tanggal_lulus",
+    "tanggal",
+    "Kosong bila belum lulus"
+   ],
+   [
+    "tahun_lulus",
+    "tahun akademik",
+    "Turunan dari tanggal_lulus"
+   ]
+  ]
+ },
+ {
+  "judul": "3.5 Dosen / Tendik",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "nidn_nidk_nup",
+    "teks",
+    "-"
+   ],
+   [
+    "nama",
+    "teks",
+    "-"
+   ],
+   [
+    "prodi",
+    "relasi",
+    "-"
+   ],
+   [
+    "jenis",
+    "pilihan",
+    "Dosen Tetap, Dosen Tidak Tetap, Tendik"
+   ],
+   [
+    "jabatan_fungsional",
+    "pilihan",
+    "Belum Memiliki, Asisten Ahli, Lektor, Lektor Kepala, Guru Besar"
+   ],
+   [
+    "gelar_akademik",
+    "teks",
+    "-"
+   ],
+   [
+    "tanggal_lahir",
+    "tanggal",
+    "-"
+   ],
+   [
+    "riwayat_pendidikan",
+    "daftar",
+    "Jenjang, bidang, asal PT, tahun"
+   ],
+   [
+    "sertifikat_pendidik",
+    "ya/tidak",
+    "Diberi tanda * di Tabel 16"
+   ],
+   [
+    "profesi",
+    "pilihan",
+    "Bidan, Perawat, Ners"
+   ],
+   [
+    "no_str",
+    "teks",
+    "Dasar perhitungan masa tunggu kerja"
+   ],
+   [
+    "tanggal_str",
+    "tanggal",
+    "Acuan Tabel 13"
+   ],
+   [
+    "tahap_mengajar",
+    "pilihan",
+    "Akademik, Profesi, keduanya"
+   ]
+  ]
+ },
+ {
+  "judul": "3.6 Mata Kuliah",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "kode_mk",
+    "teks",
+    "-"
+   ],
+   [
+    "nama_mk",
+    "teks",
+    "-"
+   ],
+   [
+    "sks_kuliah",
+    "angka",
+    "-"
+   ],
+   [
+    "sks_praktik",
+    "angka",
+    "-"
+   ],
+   [
+    "cpl",
+    "teks panjang",
+    "Capaian pembelajaran mata kuliah"
+   ],
+   [
+    "aspek_penilaian",
+    "multi pilihan",
+    "Sikap, Pengetahuan, Keterampilan umum, Keterampilan khusus"
+   ],
+   [
+    "ada_rps",
+    "ya/tidak",
+    "-"
+   ],
+   [
+    "lokasi_praktik",
+    "teks",
+    "-"
+   ],
+   [
+    "tahap",
+    "pilihan",
+    "Akademik, Profesi"
+   ]
+  ]
+ },
+ {
+  "judul": "3.7 Stase / Rotasi Klinik",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "nama_stase",
+    "teks",
+    "Khas per prodi"
+   ],
+   [
+    "wahana",
+    "relasi",
+    "Ke Wahana Praktik"
+   ],
+   [
+    "durasi",
+    "angka",
+    "Dalam minggu/sks"
+   ],
+   [
+    "pembimbing_klinik",
+    "relasi",
+    "Ke Dosen/Tendik"
+   ],
+   [
+    "kuota_mahasiswa",
+    "angka",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "3.8 Wahana Praktik",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "nama_wahana",
+    "teks",
+    "RS, RB, BPM, Puskesmas, RSJ, panti"
+   ],
+   [
+    "kualifikasi",
+    "teks",
+    "-"
+   ],
+   [
+    "kompetensi_ps",
+    "teks",
+    "-"
+   ],
+   [
+    "variasi_kasus",
+    "teks",
+    "-"
+   ],
+   [
+    "jumlah_pembimbing",
+    "angka",
+    "-"
+   ],
+   [
+    "jumlah_mahasiswa",
+    "angka",
+    "-"
+   ],
+   [
+    "kontribusi",
+    "teks",
+    "-"
+   ],
+   [
+    "dokumen_kerja_sama",
+    "relasi",
+    "Ke Kerja Sama"
+   ]
+  ]
+ },
+ {
+  "judul": "3.9 Laboratorium dan Alat",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "nama_lab",
+    "teks",
+    "-"
+   ],
+   [
+    "jumlah_unit_lab",
+    "angka",
+    "-"
+   ],
+   [
+    "nama_alat",
+    "teks",
+    "Manekin, phantom, partograf, dst"
+   ],
+   [
+    "jumlah_unit_alat",
+    "angka",
+    "-"
+   ],
+   [
+    "kepemilikan",
+    "pilihan",
+    "SD (sendiri), SW (sewa)"
+   ],
+   [
+    "kondisi",
+    "pilihan",
+    "Terawat, Tidak Terawat"
+   ],
+   [
+    "logbook",
+    "pilihan",
+    "Ada, Tidak Ada"
+   ],
+   [
+    "jam_pakai_minggu",
+    "angka",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "3.10 Pustaka dan Jurnal",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "jenis",
+    "pilihan",
+    "Buku teks, Jurnal nasional terakreditasi, Jurnal internasional, Prosiding"
+   ],
+   [
+    "judul",
+    "teks",
+    "-"
+   ],
+   [
+    "jumlah_judul",
+    "angka",
+    "-"
+   ],
+   [
+    "jumlah_copy",
+    "angka",
+    "-"
+   ],
+   [
+    "tahun",
+    "angka",
+    "Untuk daftar jurnal"
+   ],
+   [
+    "nomor",
+    "teks",
+    "Rincian nomor terbitan"
+   ]
+  ]
+ },
+ {
+  "judul": "3.11 Survei",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "jenis",
+    "pilihan",
+    "Kepuasan mahasiswa, Kepuasan pengguna lulusan"
+   ],
+   [
+    "aspek",
+    "teks",
+    "-"
+   ],
+   [
+    "periode",
+    "tahun akademik",
+    "-"
+   ],
+   [
+    "skor_sangat_baik",
+    "angka",
+    "-"
+   ],
+   [
+    "skor_baik",
+    "angka",
+    "-"
+   ],
+   [
+    "skor_cukup",
+    "angka",
+    "-"
+   ],
+   [
+    "skor_kurang",
+    "angka",
+    "-"
+   ],
+   [
+    "rencana_tindak_lanjut",
+    "teks panjang",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "3.12 Tracer Study",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "tahun_lulus",
+    "tahun akademik",
+    "-"
+   ],
+   [
+    "jumlah_lulusan",
+    "angka",
+    "-"
+   ],
+   [
+    "jumlah_terlacak",
+    "angka",
+    "-"
+   ],
+   [
+    "masa_tunggu_6_12",
+    "angka",
+    "Bulan"
+   ],
+   [
+    "masa_tunggu_12_18",
+    "angka",
+    "Bulan"
+   ],
+   [
+    "masa_tunggu_18_plus",
+    "angka",
+    "Bulan"
+   ]
+  ]
+ },
+ {
+  "judul": "3.13 Uji Kompetensi",
+  "header": [
+   "Field",
+   "Tipe",
+   "Keterangan"
+  ],
+  "rows": [
+   [
+    "prodi",
+    "relasi",
+    "-"
+   ],
+   [
+    "jenis",
+    "pilihan",
+    "CBT, OSCE"
+   ],
+   [
+    "periode",
+    "tahun akademik",
+    "-"
+   ],
+   [
+    "mahasiswa_selesai_stase",
+    "angka",
+    "-"
+   ],
+   [
+    "peserta_total",
+    "angka",
+    "-"
+   ],
+   [
+    "first_taker_peserta",
+    "angka",
+    "-"
+   ],
+   [
+    "first_taker_lulus",
+    "angka",
+    "-"
+   ],
+   [
+    "retaker_peserta",
+    "angka",
+    "-"
+   ],
+   [
+    "retaker_lulus",
+    "angka",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 2  |  Peruntukan: Semua prodi  |  Sheet 01 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "Nomor urut"
+   ],
+   [
+    "Kode dan Nama MK",
+    "relasi ke Mata Kuliah",
+    "Master",
+    "Kolom dari master MK"
+   ],
+   [
+    "Capaian Pembelajaran MK",
+    "teks panjang",
+    "Master",
+    "Dari master MK"
+   ],
+   [
+    "Kuliah (sks)",
+    "angka",
+    "Master",
+    "Dari master MK, 0 bila tidak ada kuliah"
+   ],
+   [
+    "Praktikum: Judul/Modul",
+    "teks",
+    "Input",
+    "Diisi bila ada praktikum"
+   ],
+   [
+    "Praktikum: Jam Pelaksanaan",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Aspek penilaian: Sikap",
+    "centang",
+    "Master",
+    "Dari master MK"
+   ],
+   [
+    "Aspek penilaian: Pengetahuan",
+    "centang",
+    "Master",
+    "-"
+   ],
+   [
+    "Aspek penilaian: Keterampilan umum",
+    "centang",
+    "Master",
+    "-"
+   ],
+   [
+    "Aspek penilaian: Keterampilan khusus",
+    "centang",
+    "Master",
+    "-"
+   ],
+   [
+    "RPS",
+    "teks",
+    "Master",
+    "Centang bila ada, dari master MK"
+   ],
+   [
+    "Tempat/Lokasi Praktikum",
+    "teks",
+    "Master",
+    "Dari master MK"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 3  |  Peruntukan: Semua prodi  |  Sheet 02 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Tahun Akademik",
+    "tahun akademik",
+    "Hitung",
+    "TS-7 sampai TS"
+   ],
+   [
+    "Jumlah Mahasiswa",
+    "angka",
+    "Hitung",
+    "Hitung dari master mahasiswa: status aktif + lulus + DO pada tahun tsb"
+   ],
+   [
+    "Masa studi 5,5 - 6 th",
+    "angka",
+    "Hitung",
+    "Jumlah lulusan dengan selisih tahun masuk-lulus dalam rentang"
+   ],
+   [
+    "Masa studi 6 - 10 th",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "DO",
+    "angka",
+    "Hitung",
+    "D = A - (B + C) sesuai catatan template"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 3  |  Peruntukan: Semua prodi  |  Sheet 03 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Tahun Akademik",
+    "tahun akademik",
+    "Hitung",
+    "TS-2, TS-1, TS"
+   ],
+   [
+    "Jumlah lulusan reguler",
+    "angka",
+    "Hitung",
+    "Dari master mahasiswa, jalur masuk = Reguler"
+   ],
+   [
+    "Jumlah lulusan transfer",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Jumlah lulusan asing",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "IPK minimum",
+    "desimal",
+    "Hitung",
+    "MIN dari IPK lulusan tahun tsb"
+   ],
+   [
+    "IPK rata-rata",
+    "desimal",
+    "Hitung",
+    "AVG"
+   ],
+   [
+    "IPK maksimum",
+    "desimal",
+    "Hitung",
+    "MAX"
+   ],
+   [
+    "Lulusan IPK 2,00-3,00",
+    "angka",
+    "Hitung",
+    "Hitung rentang"
+   ],
+   [
+    "Lulusan IPK >3,00-3,50",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Lulusan IPK >3,50-4,00",
+    "angka",
+    "Hitung",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 3  |  Peruntukan: Khusus Profesi  |  Sheet 04 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Semester Akademik",
+    "tahun akademik",
+    "Hitung",
+    "SS-5 sampai SS"
+   ],
+   [
+    "Jumlah lulusan reguler",
+    "angka",
+    "Hitung",
+    "Dari mahasiswa tahap profesi"
+   ],
+   [
+    "Jumlah lulusan pindahan/transfer",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Jumlah lulusan asing",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "IPK minimum / rata-rata / maksimum",
+    "desimal",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Lulusan IPK 3,00-3,50",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Lulusan IPK >3,50-3,75",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Lulusan IPK >3,75-4,00",
+    "angka",
+    "Hitung",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 3  |  Peruntukan: Semua prodi  |  Sheet 05 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Tahun Masuk",
+    "tahun akademik",
+    "Hitung",
+    "Satu baris per angkatan"
+   ],
+   [
+    "Jumlah mahasiswa per angkatan pada TS-6 ... TS",
+    "angka",
+    "Hitung",
+    "Kolom tahun digeser otomatis mengikuti tahun_ts"
+   ],
+   [
+    "Jumlah lulusan s.d. TS",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Penanda (a) - (g)",
+    "teks tetap",
+    "-",
+    "Wajib tercetak, tidak boleh dihapus saat ekspor"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 3  |  Peruntukan: Khusus Profesi  |  Sheet 06 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Tahun Masuk",
+    "tahun akademik",
+    "Hitung",
+    "TS-3 sampai TS"
+   ],
+   [
+    "Jumlah mahasiswa per angkatan",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Jumlah lulusan s.d. TS",
+    "angka",
+    "Hitung",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 3  |  Peruntukan: Khusus Profesi  |  Sheet 07 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Tahun/Semester",
+    "tahun akademik",
+    "Input",
+    "TS-2, TS-1, TS"
+   ],
+   [
+    "Mahasiswa selesai praktik klinik/stase",
+    "angka",
+    "Hitung",
+    "Dari master mahasiswa dan stase"
+   ],
+   [
+    "Jumlah peserta UKMPS-CBT dari prodi",
+    "angka",
+    "Input",
+    "Bukan peserta titipan"
+   ],
+   [
+    "First taker: jumlah peserta",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "First taker: jumlah lulus",
+    "angka",
+    "Input",
+    "Tidak boleh > peserta"
+   ],
+   [
+    "First taker: persentase",
+    "persen",
+    "Hitung",
+    "lulus/peserta x 100"
+   ],
+   [
+    "Re-taker: jumlah peserta",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Re-taker: jumlah lulus",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Re-taker: persentase",
+    "persen",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Total lulusan",
+    "angka",
+    "Hitung",
+    "First taker lulus + re-taker lulus"
+   ],
+   [
+    "Persentase lulusan",
+    "persen",
+    "Hitung",
+    "Total lulus / jumlah peserta UKMPS"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 3  |  Peruntukan: Khusus Profesi  |  Sheet 08 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Tahun",
+    "tahun akademik",
+    "Input",
+    "Struktur identik Tabel 7"
+   ],
+   [
+    "Mahasiswa selesai stase",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Peserta UKMPS-OSCE",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "First taker: peserta / lulus / persen",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Re-taker: peserta / lulus / persen",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Total lulusan",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Persentase lulusan",
+    "persen",
+    "Hitung",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 4  |  Peruntukan: Semua prodi  |  Sheet 09 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Program Studi",
+    "relasi",
+    "Master",
+    "Satu baris per prodi dalam UPPS"
+   ],
+   [
+    "Mahasiswa reguler",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Non reguler",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Asing",
+    "angka",
+    "Hitung",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 4  |  Peruntukan: Semua prodi  |  Sheet 10 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Tahun Akademik",
+    "tahun akademik",
+    "Input",
+    "TS-4 sampai TS"
+   ],
+   [
+    "Daya tampung",
+    "angka",
+    "Input",
+    "Input, tidak bisa dihitung"
+   ],
+   [
+    "Calon mahasiswa ikut seleksi",
+    "angka",
+    "Input",
+    "Input dari panitia penerimaan"
+   ],
+   [
+    "Calon mahasiswa lulus seleksi",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Mahasiswa baru reguler",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Mahasiswa baru transfer",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Mahasiswa baru asing",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Total mahasiswa aktif reguler",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Total mahasiswa aktif transfer",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Total mahasiswa aktif asing",
+    "angka",
+    "Hitung",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 4  |  Peruntukan: Khusus Profesi  |  Sheet 11 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Tahun Akademik",
+    "tahun akademik",
+    "Input",
+    "TS-2 sampai TS"
+   ],
+   [
+    "Daya tampung",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Lulus tahap akademik",
+    "angka",
+    "Hitung",
+    "Dari master mahasiswa"
+   ],
+   [
+    "Mahasiswa baru profesi reguler/transfer/asing",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Total aktif profesi reguler/transfer/asing",
+    "angka",
+    "Hitung",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 4  |  Peruntukan: Semua prodi  |  Sheet 12 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Input",
+    "Input",
+    "-"
+   ],
+   [
+    "Aspek yang diukur",
+    "Teks",
+    "Master",
+    "Dosen (4 sub), Tenaga kependidikan (4 sub), dst"
+   ],
+   [
+    "Sangat baik / Baik / Cukup / Kurang",
+    "persen",
+    "Hitung",
+    "Agregasi dari modul survei"
+   ],
+   [
+    "Persentase",
+    "persen",
+    "Hitung",
+    "Total skor aspek"
+   ],
+   [
+    "Rencana tindak lanjut",
+    "teks panjang",
+    "Input",
+    "Wajib diisi per aspek"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 4  |  Peruntukan: Semua prodi  |  Sheet 13 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Tahun Lulus",
+    "tahun akademik",
+    "Input",
+    "TS-2, TS-1, TS"
+   ],
+   [
+    "Jumlah lulusan",
+    "angka",
+    "Hitung",
+    "Dari master mahasiswa"
+   ],
+   [
+    "Lulusan yang terlacak",
+    "angka",
+    "Input",
+    "Dari tracer study"
+   ],
+   [
+    "Masa tunggu <6 bulan",
+    "angka",
+    "Hitung",
+    "Dihitung dari tanggal STR ke tanggal kerja pertama"
+   ],
+   [
+    "Masa tunggu 6-18 bulan",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Masa tunggu >=18 bulan",
+    "angka",
+    "Hitung",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 4  |  Peruntukan: Semua prodi  |  Sheet 14 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Input",
+    "Input",
+    "-"
+   ],
+   [
+    "Jenis kemampuan",
+    "Teks",
+    "Master",
+    "Integritas, keahlian, bahasa Inggris, TI, komunikasi, kerja sama, pengembangan diri"
+   ],
+   [
+    "Sangat baik / Baik / Cukup / Kurang",
+    "angka",
+    "Hitung",
+    "Dari survei pengguna"
+   ],
+   [
+    "Persentase",
+    "persen",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Rencana tindak lanjut",
+    "teks panjang",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 15 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Input",
+    "Input",
+    "-"
+   ],
+   [
+    "Hal",
+    "Teks",
+    "Master",
+    "Jabatan fungsional dan pendidikan"
+   ],
+   [
+    "Jumlah dosen per PS-1 ... PS-n",
+    "angka",
+    "Hitung",
+    "Satu kolom per prodi, mengikuti jumlah prodi aktif"
+   ],
+   [
+    "Total di UPPS",
+    "angka",
+    "Hitung",
+    "Jumlah semua kolom prodi"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 16 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama Dosen Tetap",
+    "relasi",
+    "Master",
+    "Tanda * bila sudah punya sertifikat pendidik"
+   ],
+   [
+    "Tahap: Akademik",
+    "centang",
+    "Master",
+    "-"
+   ],
+   [
+    "Tahap: Profesi",
+    "centang",
+    "Master",
+    "-"
+   ],
+   [
+    "NIDN atau NIDK",
+    "Teks",
+    "Master",
+    "Unik"
+   ],
+   [
+    "Tanggal lahir",
+    "tanggal",
+    "Master",
+    "-"
+   ],
+   [
+    "Jabatan akademik",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Gelar akademik",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Pendidikan akademik/profesi dan asal PT",
+    "Teks",
+    "Master",
+    "Dari riwayat pendidikan"
+   ],
+   [
+    "Bidang keahlian per jenjang",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Mata ajar yang diampu",
+    "relasi",
+    "Master",
+    "Ke Mata Kuliah"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 17 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama Dosen Tetap",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "sks pendidikan di PS sendiri",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "sks pendidikan di PS lain, PT sendiri",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "sks pendidikan di PT lain",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "sks penelitian",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "sks pengabdian kepada masyarakat",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "sks manajemen PT sendiri",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "sks manajemen PT lain",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Jumlah sks",
+    "angka",
+    "Hitung",
+    "Penjumlahan 7 kolom sks"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 18 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama Dosen",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "Jenis kegiatan",
+    "pilihan",
+    "Input",
+    "Seminar, lokakarya, penataran, pelatihan, pameran"
+   ],
+   [
+    "Tempat",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Waktu",
+    "tanggal",
+    "Input",
+    "-"
+   ],
+   [
+    "Sebagai penyaji",
+    "centang",
+    "Input",
+    "-"
+   ],
+   [
+    "Sebagai peserta",
+    "centang",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 19 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama (akademik / profesi)",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "NIDN / NIDK / NUP",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Tanggal lahir",
+    "tanggal",
+    "Master",
+    "-"
+   ],
+   [
+    "Jabatan akademik",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Gelar akademik",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Pendidikan dan sertifikat kompetensi",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Bidang keahlian",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Mata ajar yang diampu",
+    "relasi",
+    "Master",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 20 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama tenaga ahli/pakar",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama dan judul kegiatan",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Waktu pelaksanaan",
+    "tanggal",
+    "Input",
+    "3 tahun terakhir"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 21 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama dosen pembimbing",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "Status: jenjang pendidikan",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Status: jabatan akademik",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Jumlah mahasiswa TS-2 / TS-1 / TS",
+    "angka",
+    "Hitung",
+    "Dari data bimbingan"
+   ],
+   [
+    "Jumlah pertemuan TS-2 / TS-1 / TS",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Lama penyelesaian (bulan) TS-2 / TS-1 / TS",
+    "angka",
+    "Hitung",
+    "Dari tanggal mulai dan tanggal selesai"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 22 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama dosen",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "Judul penelitian",
+    "Teks",
+    "Input",
+    "Wajib diisi"
+   ],
+   [
+    "Mata kuliah",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "Bentuk integrasi",
+    "teks",
+    "Input",
+    "Materi kuliah, studi kasus, modul, dst"
+   ],
+   [
+    "Tahun penelitian TS-2 / TS-1 / TS",
+    "centang",
+    "Input",
+    "Satu centang per baris"
+   ],
+   [
+    "Tingkat: internasional / nasional / wilayah",
+    "centang",
+    "Input",
+    "Satu centang per baris"
+   ],
+   [
+    "Kesesuaian roadmap: sesuai / kurang / tidak",
+    "centang",
+    "Input",
+    "Satu centang per baris"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 23 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No / Nama dosen / Judul kegiatan PkM",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Mata kuliah",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "Bentuk integrasi",
+    "teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Tahun TS-2 / TS-1 / TS",
+    "centang",
+    "Input",
+    "-"
+   ],
+   [
+    "Kesesuaian roadmap: sesuai / kurang / tidak",
+    "centang",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 24 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Judul",
+    "Teks",
+    "Input",
+    "Wajib"
+   ],
+   [
+    "Nama dosen",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "Disajikan/dipublikasikan pada",
+    "Teks",
+    "Input",
+    "Nama jurnal, penerbit, atau forum"
+   ],
+   [
+    "Tahun",
+    "angka",
+    "Input",
+    "3 tahun terakhir"
+   ],
+   [
+    "Tingkat: lokal / nasional / internasional",
+    "centang",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 25 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama dosen/mahasiswa/lembaga",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "HAKI, teknologi tepat guna, model/desain/rekayasa",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Karya yang mendapat pengakuan/penghargaan",
+    "Teks",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 26 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No / Nama / Karya HAKI / Karya berpenghargaan",
+    "Teks",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 27 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No / Nama dosen",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Rekognisi/prestasi",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Lembaga pemberi",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Waktu pencapaian (tahun)",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Tingkat: wilayah / nasional / internasional",
+    "pilihan",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 5  |  Peruntukan: Semua prodi  |  Sheet 28 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No / Nama kegiatan",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Waktu penyelenggaraan",
+    "tanggal",
+    "Input",
+    "-"
+   ],
+   [
+    "Tingkat: provinsi / nasional / internasional",
+    "centang",
+    "Input",
+    "-"
+   ],
+   [
+    "Prestasi yang dicapai",
+    "Teks",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 6  |  Peruntukan: Semua prodi  |  Sheet 29 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama laboratorium",
+    "relasi",
+    "Master",
+    "Dari master laboratorium"
+   ],
+   [
+    "Jumlah unit lab",
+    "angka",
+    "Master",
+    "-"
+   ],
+   [
+    "Nama alat/peraga",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "Jumlah unit alat",
+    "angka",
+    "Master",
+    "-"
+   ],
+   [
+    "Kepemilikan: SD / SW",
+    "pilihan",
+    "Master",
+    "SD = sendiri, SW = sewa"
+   ],
+   [
+    "Kondisi: terawat / tidak terawat",
+    "pilihan",
+    "Master",
+    "-"
+   ],
+   [
+    "Logbook: ada / tidak ada",
+    "pilihan",
+    "Master",
+    "-"
+   ],
+   [
+    "Rata-rata waktu penggunaan (jam/minggu)",
+    "angka",
+    "Master",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 6  |  Peruntukan: Khusus Profesi  |  Sheet 30 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama wahana praktik",
+    "relasi",
+    "Master",
+    "RS, RB, BPM, Puskesmas, RSJ, panti"
+   ],
+   [
+    "Kualifikasi",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Kompetensi program studi",
+    "Teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Kecukupan variasi kasus",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Jumlah dosen pembimbing klinik",
+    "angka",
+    "Master",
+    "-"
+   ],
+   [
+    "Jumlah mahasiswa",
+    "angka",
+    "Hitung",
+    "-"
+   ],
+   [
+    "Kontribusi untuk pendidikan",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Dokumen kerja sama",
+    "relasi",
+    "Master",
+    "Ke modul Kerja Sama"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 6  |  Peruntukan: Semua prodi  |  Sheet 31 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No / Jenis pustaka",
+    "pilihan",
+    "Master",
+    "Buku teks, jurnal nasional terakreditasi, jurnal internasional, prosiding"
+   ],
+   [
+    "Jumlah judul",
+    "angka",
+    "Hitung",
+    "COUNT dari master pustaka"
+   ],
+   [
+    "Jumlah copy",
+    "angka",
+    "Hitung",
+    "SUM dari master pustaka"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 6  |  Peruntukan: Semua prodi  |  Sheet 32 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Jenis",
+    "pilihan",
+    "Input",
+    "Jurnal terakreditasi Dikti, jurnal internasional bereputasi"
+   ],
+   [
+    "Nama jurnal",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "Rincian tahun dan nomor",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Jumlah",
+    "angka",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 6  |  Peruntukan: Semua prodi  |  Sheet 33 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "Sumber dana",
+    "pilihan",
+    "Master",
+    "Mahasiswa, usaha sendiri, pemerintah pusat, pemerintah daerah, lain"
+   ],
+   [
+    "Jenis dana",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Jumlah dana TS-2 / TS-1 / TS (juta Rp)",
+    "angka",
+    "Input",
+    "Satuan juta rupiah, bukan rupiah penuh"
+   ],
+   [
+    "Rata-rata per tahun",
+    "angka",
+    "Hitung",
+    "Rata-rata 3 kolom"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 6  |  Peruntukan: Semua prodi  |  Sheet 34 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Jenis penggunaan",
+    "pilihan",
+    "Master",
+    "Pendidikan (gaji dosen, gaji tendik, operasional pembelajaran, operasional kantor), penelitian, PkM"
+   ],
+   [
+    "Jumlah dana TS-2 / TS-1 / TS (juta Rp)",
+    "angka",
+    "Input",
+    "-"
+   ],
+   [
+    "Persentase TS-2 / TS-1 / TS",
+    "persen",
+    "Hitung",
+    "Dihitung dari total penggunaan tahun tsb"
+   ],
+   [
+    "Total dan rata-rata",
+    "angka",
+    "Hitung",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 7  |  Peruntukan: Semua prodi  |  Sheet 35 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama program studi",
+    "relasi",
+    "Master",
+    "Satu baris per prodi"
+   ],
+   [
+    "Standar yang diacu",
+    "teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Pelaksanaan standar",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Monev audit mutu internal",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Umpan balik audit",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Tindak lanjut audit",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Tanggal audit mutu internal",
+    "tanggal",
+    "Input",
+    "-"
+   ],
+   [
+    "Keterangan",
+    "Teks",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 7  |  Peruntukan: Semua prodi  |  Sheet 36 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Input",
+    "Input",
+    "-"
+   ],
+   [
+    "Jenis dokumen",
+    "pilihan",
+    "Master",
+    "Kebijakan, manual, standar, formulir SPMI"
+   ],
+   [
+    "Ketersediaan",
+    "pilihan",
+    "Input",
+    "Tersedia / Tidak"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 7  |  Peruntukan: Semua prodi  |  Sheet 37 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama program studi",
+    "relasi",
+    "Master",
+    "-"
+   ],
+   [
+    "Hasil akreditasi internasional",
+    "teks",
+    "Master",
+    "-"
+   ],
+   [
+    "Hasil nasional kuantitatif: minimum / A-Unggul / B-Baik Sekali / C-Baik",
+    "centang",
+    "Master",
+    "Satu centang per baris"
+   ],
+   [
+    "Hasil nasional kualitatif: sementara / terakreditasi / unggul / kadaluwarsa",
+    "centang",
+    "Master",
+    "Satu centang per baris"
+   ],
+   [
+    "Tanggal penetapan akreditasi",
+    "tanggal",
+    "Master",
+    "-"
+   ],
+   [
+    "Tanggal berakhir masa akreditasi",
+    "tanggal",
+    "Master",
+    "Dasar peringatan kadaluarsa"
+   ],
+   [
+    "Keterangan",
+    "Teks",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Kriteria 8  |  Peruntukan: Semua prodi  |  Sheet 38 di instrumen",
+  "header": [
+   "Field isian",
+   "Tipe",
+   "Asal",
+   "Keterangan / nilai yang diizinkan"
+  ],
+  "rows": [
+   [
+    "No",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Nama instansi",
+    "Teks",
+    "Input",
+    "Wajib"
+   ],
+   [
+    "Dalam negeri",
+    "centang",
+    "Input",
+    "-"
+   ],
+   [
+    "Luar negeri",
+    "centang",
+    "Input",
+    "-"
+   ],
+   [
+    "Jenis kegiatan: pendidikan / penelitian / PkM",
+    "centang",
+    "Input",
+    "Boleh lebih dari satu"
+   ],
+   [
+    "Kurun waktu: mulai",
+    "tanggal",
+    "Input",
+    "-"
+   ],
+   [
+    "Kurun waktu: berakhir",
+    "tanggal",
+    "Input",
+    "Boleh kosong bila berlaku terus"
+   ],
+   [
+    "Hasil atau manfaat",
+    "Teks",
+    "Input",
+    "-"
+   ],
+   [
+    "Ketersediaan laporan pelaksanaan",
+    "ya/tidak",
+    "Input",
+    "-"
+   ]
+  ]
+ },
+ {
+  "judul": "Ini yang membuat angka antar tabel tidak saling bertentangan. Asesor biasanya menguji konsistensi ini.",
+  "header": [
+   "Aturan",
+   "Tabel terlibat",
+   "Penanganan"
+  ],
+  "rows": [
+   [
+    "Jumlah dosen tetap di Tabel 15 = jumlah baris nama di Tabel 16",
+    "15, 16",
+    "Peringatan bila selisih; blokir ekspor bila berbeda"
+   ],
+   [
+    "Jumlah lulusan di Tabel 3 = akumulasi lulusan di Tabel 5",
+    "3, 5",
+    "Peringatan"
+   ],
+   [
+    "Total mahasiswa Tabel 9 = jumlah seluruh prodi di Tabel 10",
+    "9, 10",
+    "Peringatan"
+   ],
+   [
+    "Jumlah mahasiswa Tabel 10 tsb = jumlah baris master mahasiswa aktif",
+    "10, master",
+    "Blokir penyimpanan"
+   ],
+   [
+    "Total penerimaan dana Tabel 33 = kolom sumber dana mahasiswa di Tabel 34 bila memakai dana yang sama",
+    "33, 34",
+    "Peringatan"
+   ],
+   [
+    "Jumlah persen Tabel 34 per tahun = 100%",
+    "34",
+    "Blokir penyimpanan"
+   ],
+   [
+    "Dosen di Tabel 17 harus ada di Tabel 16 atau 19",
+    "17, 16, 19",
+    "Blokir penyimpanan"
+   ],
+   [
+    "Wahana di Tabel 30 harus punya dokumen kerja sama di Tabel 38",
+    "30, 38",
+    "Peringatan"
+   ],
+   [
+    "Mata ajar di Tabel 16 dan 19 harus ada di master Mata Kuliah",
+    "16, 19, 1",
+    "Peringatan"
+   ],
+   [
+    "Tabel khusus profesi wajib lengkap bila punya_tahap_profesi = ya",
+    "4, 6, 7, 8, 11, 30",
+    "Tandai sebagai wajib di checklist"
+   ]
+  ]
+ },
+ {
+  "judul": "Setiap tabel dan setiap dokumen pendukung punya satu status. Status inilah yang ditampilkan di dashboard.",
+  "header": [
+   "Status",
+   "Arti",
+   "Syarat"
+  ],
+  "rows": [
+   [
+    "Kosong",
+    "Belum diisi",
+    "Tidak ada baris data"
+   ],
+   [
+    "Sebagian",
+    "Sudah diisi tapi masih ada field wajib kosong",
+    "Ada baris, tapi validasi belum lolos"
+   ],
+   [
+    "Lengkap",
+    "Semua field wajib terisi dan validasi lolos",
+    "Lolos semua aturan tabel dan lintas tabel"
+   ],
+   [
+    "Tidak berlaku",
+    "Tabel tidak dipakai prodi ini",
+    "Khusus profesi dan punya_tahap_profesi = tidak"
+   ],
+   [
+    "Terkunci",
+    "Sudah disetujui pimpinan",
+    "Tidak bisa diubah tanpa membuka kunci"
+   ]
+  ]
+ },
+ {
+  "judul": "7. Ringkasan Jumlah Isian",
+  "header": [
+   "Item",
+   "Jumlah"
+  ],
+  "rows": [
+   [
+    "Tabel pengisian",
+    "38"
+   ],
+   [
+    "Field isian di 38 tabel",
+    "243"
+   ],
+   [
+    "Field master data",
+    "103"
+   ],
+   [
+    "Field berasa master (otomatis)",
+    "65"
+   ],
+   [
+    "Field input manual",
+    "109"
+   ],
+   [
+    "Field dihitung sistem",
+    "68"
+   ],
+   [
+    "Aturan lintas tabel",
+    "10"
+   ],
+   [
+    "Master data",
+    "13"
+   ]
+  ]
+ }
+]
