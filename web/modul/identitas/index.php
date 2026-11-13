@@ -164,8 +164,6 @@ $relProdi = kartu('Prodi', '<div class="daftar-prodi">' . $tautanProdi . '</div>
 
 ob_start();
 ?>
-<?= gaya_kerangka() ?>
-<link rel="stylesheet" href="<?= e(BASE_URL) ?>aset/css/identitas.css?v=1">
 <?= $kepala ?>
 <form method="post" action="<?= e(BASE_URL) ?>index.php?m=identitas&amp;a=simpan&amp;p=<?= e($prodiId) ?>"
       id="formIdentitas" data-penuh="<?= e($W['penuh']) ?>" data-tanpa="<?= e($W['tanpa']) ?>"

@@ -99,4 +99,4 @@ if (is_array($hasil)) {
     ]);
 }
 
-render('Impor dosen', $css . $isi, ['aktif' => 'dosen', 'sub' => 'Unggah → pratinjau → konfirmasi']);
+render('Impor dosen', $isi, ['aktif' => 'dosen', 'sub' => 'Unggah → pratinjau → konfirmasi']);

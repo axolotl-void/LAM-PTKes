@@ -68,7 +68,7 @@ $galat = $galat ?? '';
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Masuk · Sistem Akreditasi LAM-PTKes</title>
-<link rel="stylesheet" href="<?= e(BASE_URL) ?>aset/css/app.css?v=1">
+<link rel="stylesheet" href="<?= e(BASE_URL) ?>assets/css/app.css?v=1">
 <style>
 .masuk { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(0,.95fr);
   min-height: 100vh; align-items: center; gap: clamp(24px,5vw,72px);

@@ -228,7 +228,7 @@ if (defined('MASTER_TANPA_HTTP') || !str_starts_with($aksi, 'mahasiswa')) {
 }
 
 // layout.php hanya memuat app.css dan dibekukan; CSS modul ditautkan dari isi.
-$css = '<link rel="stylesheet" href="' . e(BASE_URL) . 'aset/css/master.css?v=1">';
+
 $PRODI ??= null;
 // Admin tanpa prodi di sesi: pakai prodi pertama supaya halaman tidak kosong.
 $prodiId = (int) ($PRODI ?? qv('SELECT id FROM prodi ORDER BY id LIMIT 1', [], 0));
@@ -430,7 +430,7 @@ if ($bolehUbah) {
 if (boleh('IMPOR')) {
     $aksiKanan .= '<a class="btn" href="' . e(BASE_URL) . 'index.php?m=master&amp;a=mahasiswa-impor">Impor CSV</a>';
 }
-render('Mahasiswa', $css . $isi, [
+render('Mahasiswa', $isi, [
     'aktif' => 'mahasiswa',
     'sub'   => 'Prodi ' . $prodiNm . ' · ' . array_sum($hitung) . ' mahasiswa terdaftar',
     'aksi'  => $aksiKanan,

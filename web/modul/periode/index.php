@@ -191,8 +191,6 @@ $relRiwayat = kartu('Riwayat periode', $riwayat
 
 ob_start();
 ?>
-<?= gaya_kerangka() ?>
-<link rel="stylesheet" href="<?= e(BASE_URL) ?>aset/css/identitas.css?v=1">
 <?= $kepala ?>
 <form method="post" action="<?= e(BASE_URL) ?>index.php?m=periode&amp;a=simpan&amp;p=<?= e($prodiId) ?>">
   <?= csrf_input() ?>

@@ -100,4 +100,4 @@ if ($id > 0) {
     $isi .= kartu('Riwayat pendidikan', $isiRiwayat, ['catatan' => count($riwayat) . ' baris']);
 }
 
-render($judul, $css . $isi, ['aktif' => 'dosen', 'sub' => 'NIDN/NIDK/NUP unik · riwayat pendidikan banyak baris']);
+render($judul, $isi, ['aktif' => 'dosen', 'sub' => 'NIDN/NIDK/NUP unik · riwayat pendidikan banyak baris']);

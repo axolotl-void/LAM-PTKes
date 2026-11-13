@@ -2,263 +2,229 @@
 declare(strict_types=1);
 
 /**
- * Komponen tampilan bersama. Dipakai SEMUA modul — jangan bikin versi sendiri.
+ * Komponen tampilan. KELAS CSS-NYA HARUS SAMA dengan `mockup/assets/js/pagekit.js`.
  *
- * Aturan yang dijaga di sini, bukan di tiap modul:
- *  - setiap nilai dari database lewat e(); satu tempat lupa = XSS di 38 tabel
- *  - bar selalu mengkodekan besaran yang sama dengan angka di sebelahnya
- *  - angka selalu berlabel ("17" harus jadi "17 tabel")
+ * app.css disalin apa adanya dari mockup/, jadi markup yang berbeda = tampilan
+ * yang berbeda. Setiap fungsi di sini adalah padanan satu fungsi JS:
  *
- * `komponen.php` tidak menulis apa pun; hanya membentuk string HTML.
+ *   head()      <-> pagekit.js  head()
+ *   strip()     <-> pagekit.js  strip()
+ *   badge()     <-> pagekit.js  badge()
+ *   kartu()     <-> pagekit.js  card()
+ *   cardHead()  <-> pagekit.js  cardHead()
+ *   callout()   <-> pagekit.js  callout()
+ *   dlist()     <-> pagekit.js  dlist()
+ *   mbar()      <-> pagekit.js  mbar()
+ *   tabel_html()<-> pagekit.js  table()
+ *
+ * Jangan menambah kelas CSS baru di sini. Kalau butuh gaya baru, cek dulu
+ * apakah app.css sudah punya — 900 baris itu sudah punya banyak.
  */
 
-require_once dirname(__DIR__, 2) . '/system/view.php';
-require_once dirname(__DIR__, 2) . '/system/rekap.php';
+/** Padanan BADGE_KIND di pagekit.js. */
+const BADGE_KIND = [
+    'lengkap' => 'ok', 'sebagian' => 'warn', 'kosong' => 'muted',
+    'terkunci' => 'lock', 'na' => 'na', 'gagal' => 'bad',
+    'blokir' => 'bad', 'peringatan' => 'warn',
+];
 
-/**
- * Berkas CSS modul kerangka. layout.php dibekukan dan hanya memuat app.css,
- * jadi modul memanggil ini di awal $isi. Satu tempat, bukan tiga.
- */
-function gaya_kerangka(): string
+/** badge(kind, label) — terima nama status mentah ('lengkap') atau kelas ('ok'). */
+function badge(string $kind, string $label): string
 {
-    return '<link rel="stylesheet" href="' . e(BASE_URL) . 'aset/css/kerangka.css?v=1">';
+    $cls = BADGE_KIND[$kind] ?? $kind;
+    return '<span class="badge ' . e($cls) . '">' . e($label) . '</span>';
 }
 
-/**
- * Kartu: kotak putih berjudul, wadah standar semua blok isi.
- *
- * $opsi
- *   catatan : teks kecil di kanan judul (sudah di-escape di sini)
- *   aksi    : HTML tombol — pemanggil WAJIB sudah meng-escape isinya
- *   kelas   : kelas tambahan pada <section>
- *   id      : atribut id
- */
-function kartu(string $judul, string $isi, array $opsi = []): string
-{
-    $kelas = trim('card ' . (string) ($opsi['kelas'] ?? ''));
-    $id = isset($opsi['id']) ? ' id="' . e((string) $opsi['id']) . '"' : '';
+/* badge_status() sudah ada di web/system/view.php — jangan dideklarasikan dua
+   kali. PHP fatal "Cannot redeclare function". */
 
-    $kepala = '';
-    if ($judul !== '' || !empty($opsi['catatan']) || !empty($opsi['aksi'])) {
-        $kepala = '<div class="card-head"><h2>' . e($judul) . '</h2>';
-        if (!empty($opsi['catatan'])) {
-            $kepala .= '<span class="note">' . e((string) $opsi['catatan']) . '</span>';
-        }
-        if (!empty($opsi['aksi'])) {
-            $kepala .= '<span class="card-aksi">' . (string) $opsi['aksi'] . '</span>';
-        }
-        $kepala .= '</div>';
+/**
+ * strip angka besar: [[nilai, label, kelas?], ...]
+ * kelas: '' | ok | warn | bad | muted — sama dengan strip() di pagekit.js.
+ */
+function strip(array $sel): string
+{
+    $out = '<div class="strip">';
+    foreach ($sel as $s) {
+        $nilai = $s[0] ?? '';
+        $label = $s[1] ?? '';
+        $cls = $s[2] ?? '';
+        $out .= '<div class="cell"><div class="val ' . e((string) $cls) . '">' . $nilai
+            . '</div><div class="lab">' . e((string) $label) . '</div></div>';
     }
+    return $out . '</div>';
+}
 
-    return '<section class="' . e($kelas) . '"' . $id . '>' . $kepala . $isi . '</section>';
+/** kartu putih. $inner sudah HTML (tidak di-escape). */
+function kartu(string $inner, string $cls = ''): string
+{
+    return '<div class="card ' . e($cls) . '">' . $inner . '</div>';
+}
+
+/** kepala kartu: judul + catatan kanan + tombol kanan. */
+function cardHead(string $judul, string $catatan = '', string $kanan = ''): string
+{
+    $out = '<div class="card-head"><h2>' . e($judul) . '</h2>';
+    if ($catatan !== '') {
+        $out .= '<span class="note">' . $catatan . '</span>';
+    }
+    if ($kanan !== '') {
+        $out .= '<span style="margin-left:auto">' . $kanan . '</span>';
+    }
+    return $out . '</div>';
+}
+
+/** banner: $jenis = bad | warn | lock | info. */
+function callout(string $jenis, string $judul, string $isi, string $aksi = ''): string
+{
+    return '<div class="callout ' . e($jenis) . '"><div class="c-body">'
+        . '<h3>' . e($judul) . '</h3>' . $isi
+        . '</div>' . $aksi . '</div>';
+}
+
+/** daftar titik: [[judul, keterangan], ...] */
+function dlist(array $item): string
+{
+    $out = '<div class="dlist">';
+    foreach ($item as $i) {
+        $out .= '<div class="item"><span class="dot"></span><div><h4>' . e($i[0]) . '</h4>'
+            . '<p>' . ($i[1] ?? '') . '</p></div></div>';
+    }
+    return $out . '</div>';
+}
+
+/** bar tipis: $pct 0..100. */
+function mbar(float $pct, string $cls = 'ok', int $h = 5): string
+{
+    $p = max(0, min(100, $pct));
+    return '<div class="mbar" style="height:' . $h . 'px"><i class="' . e($cls)
+        . '" style="width:' . number_format($p, 1, '.', '') . '%"></i></div>';
 }
 
 /**
- * Tabel HTML.
- *
- * $kolom: daftar kolom. Tiap butir string (kunci = label) atau array:
- *   kunci  => nama kolom di $baris (wajib)
- *   label  => judul kolom (bawaan: kunci)
- *   kelas  => 'r' untuk angka rata kanan
- *   html   => true kalau nilai sudah HTML jadi hasil helper lain
- *             (mis. badge_status()). Nilai mentah dari DB JANGAN pakai ini.
- *   lebar  => lebar kolom, mis. '120px'
- *
- * $baris: daftar array asosiatif. Nilai null/'' jadi tanda pisah.
- * $opsi: 'kosong' (teks saat tanpa baris), 'kelas', 'tanpa_bungkus' (tanpa .tbl-wrap)
+ * tabel standar. $kolom = [[label, align 'r'|''], ...]
+ * $baris = [[sel, sel, ...], ...] atau [['cells'=>[...], 'cls'=>'is-bad'], ...]
+ * Sel sudah HTML — jangan escape di sini, pemanggil yang tahu isinya.
  */
 function tabel_html(array $kolom, array $baris, array $opsi = []): string
 {
-    $norm = [];
-    foreach ($kolom as $k => $kol) {
-        if (is_string($kol)) {
-            $kol = ['kunci' => $kol, 'label' => $kol];
-        }
-        $norm[] = [
-            'kunci' => (string) ($kol['kunci'] ?? $k),
-            'label' => (string) ($kol['label'] ?? $kol['kunci'] ?? $k),
-            'kelas' => (string) ($kol['kelas'] ?? ''),
-            'html'  => (bool) ($kol['html'] ?? false),
-            'lebar' => isset($kol['lebar']) ? (string) $kol['lebar'] : '',
-        ];
-    }
-
-    $th = '';
-    foreach ($norm as $k) {
-        $th .= '<th' . ($k['kelas'] !== '' ? ' class="' . e($k['kelas']) . '"' : '')
-             . ($k['lebar'] !== '' ? ' style="width:' . e($k['lebar']) . '"' : '') . '>'
-             . e($k['label']) . '</th>';
-    }
-
-    $tb = '';
-    foreach ($baris as $b) {
-        $tr = '';
-        foreach ($norm as $k) {
-            $v = $b[$k['kunci']] ?? null;
-            $kelas = $k['kelas'];
-            if (is_array($v)) {
-                $isi = (string) ($v['html'] ?? e($v['isi'] ?? ''));
-                $kelas = trim($kelas . ' ' . (string) ($v['kelas'] ?? ''));
-            } elseif ($v === null || $v === '') {
-                $isi = '<span class="muted">—</span>';
-            } else {
-                $isi = $k['html'] ? (string) $v : e($v);
+    $foot = $opsi['foot'] ?? null;
+    $cls = $opsi['cls'] ?? '';
+    // Dua bentuk kolom dipakai modul: ['Nama', 'r'] atau string 'Nama'.
+    // Keduanya diterima supaya pemanggil tidak perlu diubah.
+    $norm = static function ($k): array {
+        if (is_array($k)) {
+            // ['label'=>.., 'kunci'=>..] dipakai modul periode; ['Nama','r'] dipakai lainnya.
+            if (isset($k['label'])) {
+                return [(string) $k['label'], (string) ($k['align'] ?? '')];
             }
-            $tr .= '<td' . ($kelas !== '' ? ' class="' . e($kelas) . '"' : '') . '>' . $isi . '</td>';
+            return [(string) ($k[0] ?? ''), (string) ($k[1] ?? '')];
         }
-        $tb .= '<tr>' . $tr . '</tr>';
+        return [(string) $k, ''];
+    };
+    $kolom = array_map($norm, $kolom);
+
+    $out = '<div class="tbl-wrap"><table class="tbl ' . e($cls) . '"><thead><tr>';
+    foreach ($kolom as $k) {
+        $out .= '<th class="' . ($k[1] === 'r' ? 'r' : '') . '">' . e($k[0]) . '</th>';
     }
-
-    if ($tb === '') {
-        $tb = '<tr><td class="kosong" colspan="' . count($norm) . '">'
-            . e((string) ($opsi['kosong'] ?? 'Belum ada data.')) . '</td></tr>';
-    }
-
-    $tabel = '<table class="tbl' . (isset($opsi['kelas']) ? ' ' . e((string) $opsi['kelas']) : '') . '">'
-           . '<thead><tr>' . $th . '</tr></thead><tbody>' . $tb . '</tbody></table>';
-
-    return !empty($opsi['tanpa_bungkus']) ? $tabel : '<div class="tbl-wrap">' . $tabel . '</div>';
-}
-
-/** Bar 0–100%. Satu-satunya tempat lebar bar dihitung. */
-function bar_bagian(float $bagian, float $dari, string $kelas = ''): string
-{
-    if ($dari <= 0) {
-        return '';
-    }
-    $persen = max(0.0, min(100.0, $bagian / $dari * 100));
-    return '<span class="bar' . ($kelas !== '' ? ' ' . e($kelas) : '') . '">'
-         . '<i style="width:' . e(number_format($persen, 1, '.', '')) . '%"></i></span>';
-}
-
-/**
- * Strip angka: deretan kotak angka untuk ringkasan atas halaman.
- *
- * $item: daftar butir, tiap butir
- *   label  => teks label, wajib. Angka tanpa label ditebak salah.
- *   nilai  => int
- *   dari   => int|null; kalau ada, bar menggambarkan nilai/dari — besaran yang
- *             SAMA dengan angka yang tertulis, bukan persen lain.
- *   ket    => keterangan kecil di bawah angka
- *   satuan => kata setelah angka ('tabel', 'dokumen')
- */
-function strip_angka(array $item): string
-{
-    $out = '';
-    foreach ($item as $it) {
-        $nilai = (int) ($it['nilai'] ?? 0);
-        $dari = isset($it['dari']) ? (int) $it['dari'] : null;
-        $angka = '<b class="num">' . e(number_format($nilai, 0, ',', '.')) . '</b>';
-        if ($dari !== null) {
-            $angka .= '<span class="strip-dari">/ ' . e(number_format($dari, 0, ',', '.')) . '</span>';
+    $out .= '</tr></thead><tbody>';
+    foreach ($baris as $r) {
+        $sel = is_array($r) && isset($r['cells']) ? $r['cells'] : $r;
+        $trCls = is_array($r) && isset($r['cls']) ? ' class="' . e($r['cls']) . '"' : '';
+        $out .= '<tr' . $trCls . '>';
+        foreach ($sel as $i => $c) {
+            $kanan = ($kolom[$i][1] ?? '') === 'r' ? 'r' : '';
+            // Sel boleh berupa array ['isi'=>..., 'cls'=>...] — dipakai modul
+            // dashboard untuk bar + angka dalam satu sel.
+            if (is_array($c)) {
+                $isi = $c['isi'] ?? $c[0] ?? '';
+                $clsSel = ' ' . (string) ($c['cls'] ?? $c[1] ?? '');
+            } else {
+                $isi = $c;
+                $clsSel = '';
+            }
+            $out .= '<td class="' . $kanan . $clsSel . '">' . $isi . '</td>';
         }
-        if (!empty($it['satuan'])) {
-            $angka .= ' <span class="strip-satuan">' . e((string) $it['satuan']) . '</span>';
-        }
-        $out .= '<div class="strip-item">'
-              . '<div class="strip-label">' . e((string) ($it['label'] ?? '')) . '</div>'
-              . '<div class="strip-angka">' . $angka . '</div>'
-              . ($dari !== null ? bar_bagian($nilai, $dari) : '')
-              . (!empty($it['ket']) ? '<div class="strip-ket">' . e((string) $it['ket']) . '</div>' : '')
-              . '</div>';
+        $out .= '</tr>';
     }
-    return '<div class="strip">' . $out . '</div>';
+    $out .= '</tbody>';
+    if ($foot !== null) {
+        $out .= '<tfoot><tr>';
+        foreach ($foot as $i => $c) {
+            $kanan = ($kolom[$i][1] ?? '') === 'r' ? 'r' : '';
+            $out .= '<td class="' . $kanan . '">' . $c . '</td>';
+        }
+        $out .= '</tr></tfoot>';
+    }
+    return $out . '</table></div>';
 }
 
 /**
- * Callout: satu pesan yang harus dibaca. Jenis membawa kata + ikon, bukan
- * warna saja — halaman ini dicetak hitam-putih oleh asesor.
- * jenis: info | warn | bad | ok
+ * Potongan halaman galat — BUKAN dokumen utuh.
+ * Modul memanggil ini di dalam render(), jadi mengembalikan <html> akan
+ * menyarangkan dokumen di dalam dokumen.
  */
-function callout(string $jenis, string $judul, string $isi): string
+function halaman_galat(string|int $kode, string $pesan): string
 {
-    $kata = ['info' => 'Catatan', 'warn' => 'Perhatian', 'bad' => 'Masalah', 'ok' => 'Selesai'];
-    $ikon = [
-        'info' => 'M12 8h.01M11 12h1v4h1',
-        'warn' => 'M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z',
-        'bad'  => 'M12 8v5M12 17h.01M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z',
-        'ok'   => 'M20 6 9 17l-5-5',
-    ];
-    $jenis = isset($kata[$jenis]) ? $jenis : 'info';
+    $judul = is_int($kode) ? 'Tidak bisa dibuka (' . $kode . ')' : $kode;
+    return callout('bad', $judul, '<p>' . e($pesan) . '</p>');
+}
 
-    return '<div class="callout ' . e($jenis) . '" role="note">'
-         . '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"'
-         . ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
-         . '<path d="' . $ikon[$jenis] . '"/></svg>'
-         . '<div><h3>' . e(($kata[$jenis] . ': ' . $judul)) . '</h3><p>' . $isi . '</p></div>'
-         . '</div>';
+/** Nama lama dari agent 1 — diteruskan ke strip() yang sesuai desain asli. */
+function strip_angka(array $sel): string
+{
+    return strip($sel);
 }
 
 /**
- * Halaman galat: pengganti isi halaman saat modul tidak bisa menampilkan
- * datanya (prodi belum dipilih, periode belum ada, kode tabel tidak dikenal).
- *
- * Mengembalikan POTONGAN isi, bukan dokumen utuh — dipanggil sebagai
- * `render('...', halaman_galat(409, '...'))` supaya sidebar dan topbar tetap
- * ada. $pesan boleh HTML dari pemanggil asal sudah di-escape.
+ * Dulu mengembalikan blok <style> untuk CSS kerangka buatan agent.
+ * Sekarang CSS-nya `assets/css/app.css` milik desain asli, dimuat oleh layout.
+ * Fungsi ini tetap ada supaya pemanggil lama tidak perlu diubah.
  */
-function halaman_galat(int $kode, string $pesan, string $tautan = ''): string
+function gaya_kerangka(): string
 {
-    $tautan = $tautan !== '' ? $tautan : BASE_URL . 'index.php?m=dashboard';
-    return '<div class="galat-halaman">'
-         . '<div class="galat-kode num">' . e($kode) . '</div>'
-         . '<h2>Halaman tidak bisa ditampilkan</h2>'
-         . '<p>' . $pesan . '</p>'
-         . '<a class="btn btn-primary" href="' . e($tautan) . '">Kembali ke Dashboard</a>'
-         . '</div>';
+    return '';
 }
 
 /**
- * 8 kriteria + hitungan tabel, dari rekap.php.
- *
- * ponytail: jaring pengaman, bukan fitur. Di seed ini `tabel_dukung.kriteria`
- * berisi '2'..'8' sedangkan `kriteria.kode` berisi 'K1'..'K8', jadi
- * rekap_per_kriteria() menyusun kunci 'K2' lalu mencarinya di kunci '2' —
- * hasilnya semua kriteria 0 dan PHP mengeluarkan warning per tabel. Kalau
- * totalnya tidak menjumlah, hitung ulang dari rekap_semua_tabel() (baris dan
- * status yang sama, cuma dikelompokkan ulang). Hapus cabang ini begitu
- * rekap.php menormalkan kunci kriteria.
+ * Bar bagian + label. Padanan `mbar()` di pagekit.js.
+ * Bar mengkodekan PORSI ($bagian/$total), jadi angka di sebelahnya harus
+ * porsi itu juga — bukan besaran lain. Aturan anti-slop no. 2.
+ */
+function bar_bagian(float $bagian, float $total, string $cls = 'ok'): string
+{
+    if ($total <= 0) {
+        return '<span class="muted">—</span>';
+    }
+    $pct = $bagian / $total * 100;
+    return mbar($pct, $cls) . '<div class="foot-note">'
+        . e(number_format($bagian, 0, ',', '.')) . ' dari '
+        . e(number_format($total, 0, ',', '.')) . ' · '
+        . e(number_format($pct, 0, ',', '.')) . '%</div>';
+}
+
+/**
+ * Rekap per kriteria dengan kunci yang SUDAH dinormalkan ('K1'..'K8').
+ * Sejak bug `'2'` vs `'K2'` diperbaiki di skema, ini cukup meneruskan
+ * rekap_per_kriteria() — tapi dipakai banyak modul, jadi tetap disediakan
+ * sebagai satu nama supaya kalau bentuknya berubah, satu tempat saja.
  */
 function rekap_kriteria(int $prodiId, int $periodeId): array
 {
-    $semua = rekap_semua_tabel($prodiId, $periodeId);
-    $per = @rekap_per_kriteria($prodiId, $periodeId);
-    // Sehat = tiap butir punya kunci 'kriteria' dan totalnya menjumlah tepat.
-    // Bug kunci tadi menghasilkan butir cacat TANPA 'kriteria' yang totalnya
-    // kebetulan tetap 38, jadi jumlah saja tidak cukup untuk memeriksa.
-    $sehat = $per !== [] && array_sum(array_column($per, 'total')) === count($semua);
-    foreach ($per as $k) {
-        if (!isset($k['kriteria'], $k['nama'], $k['lengkap'], $k['wajib'])) {
-            $sehat = false;
-        }
-    }
-    if ($sehat) {
-        return $per;
-    }
+    return rekap_per_kriteria($prodiId, $periodeId);
+}
 
-    $out = [];
-    foreach (semua_kriteria() as $k) {
-        $out[$k['kode']] = ['kriteria' => $k['kode'], 'nama' => $k['nama'],
-                            'total' => 0, 'wajib' => 0, 'lengkap' => 0,
-                            'sebagian' => 0, 'kosong' => 0];
+/** Keadaan kosong yang jujur: sebut apa yang belum ada, jangan kotak berisi 0. */
+function kosong(string $judul, array $butuh): string
+{
+    $daftar = '';
+    foreach ($butuh as $b) {
+        $daftar .= '<li>' . e($b) . '</li>';
     }
-    foreach ($semua as $t) {
-        $kode = (string) $t['kriteria'];
-        $kode = str_starts_with($kode, 'K') ? $kode : 'K' . $kode;
-        if (!isset($out[$kode])) {
-            continue;
-        }
-        $out[$kode]['total']++;
-        if ($t['status'] === 'na') {
-            continue;
-        }
-        $out[$kode]['wajib']++;
-        if (in_array($t['status'], ['lengkap', 'terkunci'], true)) {
-            $out[$kode]['lengkap']++;
-        } else {
-            $out[$kode][$t['status']]++;
-        }
-    }
-    ksort($out);
-    return array_values($out);
+    return kartu(
+        cardHead($judul, 'belum ada data')
+        . '<p class="foot-note">Data yang dibutuhkan:</p>'
+        . '<ul class="foot-note" style="padding-left:18px;margin-top:6px">' . $daftar . '</ul>'
+    );
 }

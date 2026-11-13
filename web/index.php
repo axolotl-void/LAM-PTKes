@@ -38,9 +38,32 @@ const ALIAS_MODUL = [
     'sarana'    => ['master', 'wahana'],
     'pustaka'   => ['master', 'pustaka'],
 ];
+// Halaman menu yang isinya belum punya modul sendiri: tampilkan keadaan
+// jujur (apa yang dibutuhkan), bukan 404 yang tidak menjelaskan apa pun.
+const MODUL_BELUM = [
+    'uji'       => ['Uji Kompetensi', 'F-09', ['Data uji CBT/OSCE per periode', 'Jumlah peserta dan kelulusan first taker / re-taker']],
+    'survei'    => ['Survei & Tracer', 'F-10', ['Skor survei kepuasan mahasiswa', 'Tracer study: masa tunggu lulusan']],
+    'keuangan'  => ['Keuangan', 'F-17', ['Penerimaan dana (Tabel 33)', 'Penggunaan dana per tahun (Tabel 34)']],
+    'kerjasama' => ['Kerja Sama', 'F-19', ['Daftar MoU/PKS beserta masa berlaku', 'Keterkaitan dengan wahana praktik (Tabel 38)']],
+];
+if (isset(MODUL_BELUM[$modul])) {
+    [$judul, $fitur, $butuh] = MODUL_BELUM[$modul];
+    require_once __DIR__ . '/system/layout.php';
+    require_once __DIR__ . '/tampilan/kerangka/komponen.php';
+    render($judul, kosong($judul . ' — belum dibangun', $butuh),
+        ['aktif' => $modul, 'sub' => 'Fitur ' . $fitur . ' · menunggu modulnya']);
+    return;
+}
+
 if (isset(ALIAS_MODUL[$modul])) {
     [$modul, $aksi] = ALIAS_MODUL[$modul];
     $_GET['a'] = $aksi;
+}
+
+// Menu "Data Dukung" memakai m=datadukung, tapi modulnya m=tabel.
+if ($modul === 'datadukung') {
+    require __DIR__ . '/modul/datadukung/index.php';
+    return;
 }
 
 const MODUL = [
@@ -55,6 +78,11 @@ const MODUL = [
     'konsistensi' => true,
     'pengguna'    => true,
     'ekspor'      => true,
+    'datadukung'  => true,    // alias menu -> m=tabel
+    'uji'         => true,
+    'survei'      => true,
+    'keuangan'    => true,
+    'kerjasama'   => true,
 ];
 
 if (!isset(MODUL[$modul])) {

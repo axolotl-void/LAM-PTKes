@@ -1,0 +1,123 @@
+/* ═══════════════════════════════════════════════════════════════════
+   Animasi masuk halaman — CSS-only + urutan lewat custom property.
+
+   Aturan main:
+   - Hanya `transform` dan `opacity` yang dianimasikan. Tidak ada width,
+     height, top/left, atau box-shadow — semuanya memicu reflow/layout
+     ulang dan bikin scroll patah-patah di halaman 38 baris.
+   - Jeda dihitung sekali di JS (`--i`), bukan di CSS per elemen. Satu
+     variabel dipakai semua keyframes, jadi menambah elemen tidak perlu
+     menyentuh stylesheet.
+   - `prefers-reduced-motion` mematikan semuanya. Ini bukan opsional:
+     animasi masuk yang lambat bisa memicu mual pada pengguna vestibular.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  --anim-dur: 460ms;         /* durasi dasar; user minta "sedikit lambat" */
+  --anim-step: 55ms;         /* jeda antar elemen dalam satu kelompok */
+  --anim-cap: 14;            /* elemen ke-14 dst. tidak menambah jeda lagi */
+  --anim-rise: 12px;         /* jarak angkat; lebih dari 16px terasa berlebihan */
+  --anim-ease: cubic-bezier(.22, .61, .36, 1);  /* keluar cepat, masuk lembut */
+}
+
+/* ── keyframes ──────────────────────────────────────────────────── */
+
+/* Naik + pudar. Dipakai kartu, callout, strip, tabel. */
+@keyframes a-rise {
+  from { opacity: 0; transform: translate3d(0, var(--anim-rise), 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Teks: naik lebih pendek supaya tidak terlihat "melompat". */
+@keyframes a-text {
+  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* Garis: tumbuh dari kiri. scaleX, bukan width — width bikin layout geser. */
+@keyframes a-line {
+  from { opacity: 0; transform: scaleX(0); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+
+/* Baris tabel: geser tipis dari kiri. */
+@keyframes a-row {
+  from { opacity: 0; transform: translate3d(-8px, 0, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* ── penerapan ──────────────────────────────────────────────────── */
+
+/* Semua elemen yang dianimasikan mulai dari keadaan tak terlihat.
+   `--i` diset di JS; kalau tidak ada, dianggap 0. */
+.main .an {
+  opacity: 0;
+  animation: a-rise var(--anim-dur) var(--anim-ease) forwards;
+  animation-delay: calc(var(--i, 0) * var(--anim-step));
+  will-change: opacity, transform;
+}
+
+.main .an-text {
+  opacity: 0;
+  animation: a-text calc(var(--anim-dur) * 0.8) var(--anim-ease) forwards;
+  animation-delay: calc(var(--i, 0) * var(--anim-step));
+}
+
+/* Judul halaman: lebih lambat supaya jadi pemimpin pandangan. */
+.main .page-head h1 {
+  opacity: 0;
+  animation: a-text calc(var(--anim-dur) * 1.1) var(--anim-ease) forwards;
+  animation-delay: calc(var(--i, 0) * var(--anim-step));
+}
+.main .page-sub {
+  opacity: 0;
+  animation: a-text calc(var(--anim-dur) * 0.9) var(--anim-ease) forwards;
+  animation-delay: calc((var(--i, 0) * var(--anim-step)) + 90ms);
+}
+
+/* Garis pemisah: card-head border, thead border, nav-sep, hr. */
+.main .card-head { position: relative; }
+.main .card-head::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -10px;
+  height: 1px; background: var(--dv);
+  transform-origin: left center;
+  opacity: 0;
+  animation: a-line 620ms var(--anim-ease) forwards;
+  animation-delay: calc((var(--i, 0) * var(--anim-step)) + 120ms);
+}
+.main .tbl thead th { position: relative; }
+.main .tbl thead th::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0;
+  height: 1px; background: var(--bd);
+  transform-origin: left center;
+  opacity: 0;
+  animation: a-line 700ms var(--anim-ease) forwards;
+  animation-delay: calc((var(--i, 0) * var(--anim-step)) + 140ms);
+}
+.main .nav-sep, .main hr {
+  transform-origin: left center;
+  opacity: 0;
+  animation: a-line 620ms var(--anim-ease) forwards;
+  animation-delay: calc((var(--i, 0) * var(--anim-step)) + 100ms);
+}
+
+/* Baris tabel: masuk bergilir, tapi dibatasi 12 baris pertama saja.
+   Tabel 38 baris kalau semua dianimasikan = 2 detik menunggu kosong. */
+.main .tbl tbody tr { opacity: 0; animation: a-row 380ms var(--anim-ease) forwards; }
+.main .tbl tbody tr:nth-child(-n+12) {
+  animation-delay: calc((var(--i, 0) * var(--anim-step)) + 160ms + (var(--r, 0) * 22ms));
+}
+.main .tbl tbody tr:nth-child(n+13) {
+  animation-delay: calc((var(--i, 0) * var(--anim-step)) + 160ms + (11 * 22ms));
+}
+
+/* ── matikan kalau diminta ──────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .main .an, .main .an-text, .main .page-head h1, .main .page-sub,
+  .main .card-head::after, .main .tbl thead th::after, .main .nav-sep,
+  .main hr, .main .tbl tbody tr {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}

@@ -102,4 +102,4 @@ if (is_array($hasil)) {
     ]);
 }
 
-render('Impor mahasiswa', $css . $isi, ['aktif' => 'mahasiswa', 'sub' => 'Unggah → pratinjau → konfirmasi']);
+render('Impor mahasiswa', $isi, ['aktif' => 'mahasiswa', 'sub' => 'Unggah → pratinjau → konfirmasi']);

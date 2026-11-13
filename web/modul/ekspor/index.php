@@ -31,8 +31,7 @@ $alasan = ekspor_blokir($PRODI !== null ? (int) $PRODI : null);
 /** Halaman penolakan: sebut sebabnya, jangan cuma "tidak bisa ekspor". */
 $tolak_ekspor = static function (array $alasan): never {
     http_response_code(409);
-    $isi = '<link rel="stylesheet" href="' . e(BASE_URL) . 'aset/css/ekspor.css?v=1">'
-         . callout('bad', 'Ekspor diblokir',
+    $isi = callout('bad', 'Ekspor diblokir',
              'Data belum boleh keluar sistem. Perbaiki hal berikut, lalu ulangi ekspor:');
     $isi .= '<ul class="eks-blokir">';
     foreach ($alasan as $a) {
@@ -82,8 +81,7 @@ if ($aksi === 'pdf') {
         ?><!DOCTYPE html>
 <html lang="id"><head><meta charset="utf-8">
 <title><?= e($judul) ?> · Ekspor diblokir</title>
-<link rel="stylesheet" href="<?= e(BASE_URL) ?>aset/css/app.css?v=1">
-<link rel="stylesheet" href="<?= e(BASE_URL) ?>aset/css/ekspor.css?v=1">
+<link rel="stylesheet" href="<?= e(BASE_URL) ?>assets/css/app.css?v=1">
 </head><body class="eks-cetak">
 <main class="eks-lembar">
   <h1><?= e($judul) ?></h1>
@@ -104,7 +102,6 @@ if ($aksi === 'pdf') {
 <html lang="id"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($judul) ?></title>
-<link rel="stylesheet" href="<?= e(BASE_URL) ?>aset/css/ekspor.css?v=1">
 </head><body class="eks-cetak">
 
 <div class="eks-alat">
@@ -162,7 +159,6 @@ if ($aksi === 'pdf') {
 /* ── halaman index ──────────────────────────────────────────────── */
 wajib('EKSPOR');
 
-$isi = '<link rel="stylesheet" href="' . e(BASE_URL) . 'aset/css/ekspor.css?v=1">';
 
 if (!$PRODI || !$per) {
     $isi .= callout('warn', 'Periode belum ada',

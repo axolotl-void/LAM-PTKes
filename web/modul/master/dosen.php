@@ -306,7 +306,6 @@ if (defined('MASTER_TANPA_HTTP') || !str_starts_with($aksi, 'dosen')) {
     return;
 }
 
-$css = '<link rel="stylesheet" href="' . e(BASE_URL) . 'aset/css/master.css?v=1">';
 $PRODI ??= null;
 $prodiId  = (int) ($PRODI ?? qv('SELECT id FROM prodi ORDER BY id LIMIT 1', [], 0));
 $prodiNm  = (string) qv('SELECT nama_ps FROM prodi WHERE id = ?', [$prodiId], '—');
@@ -506,7 +505,7 @@ if ($bolehUbah) {
 if (boleh('IMPOR')) {
     $aksiKanan .= '<a class="btn" href="' . e(BASE_URL) . 'index.php?m=master&amp;a=dosen-impor">Impor CSV</a>';
 }
-render('Dosen & Tendik', $css . $isi, [
+render('Dosen & Tendik', $isi, [
     'aktif' => 'dosen',
     'sub'   => $totalDosen . ' orang terdaftar · ' . count($petaProdi) . ' prodi',
     'aksi'  => $aksiKanan,

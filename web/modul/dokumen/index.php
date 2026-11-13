@@ -25,7 +25,7 @@ $PRODI = prodi_aktif();
 $per = $PRODI !== null ? periode_aktif($PRODI) : null;
 
 if ($PRODI === null || $per === null) {
-    render('Dokumen Pendukung', gaya_kerangka() . callout('warn', 'Prodi/periode belum ditetapkan',
+    render('Dokumen Pendukung', callout('warn', 'Prodi/periode belum ditetapkan',
         'Pilih prodi dan periode dulu di menu <b>Periode Akreditasi</b>. '
         . 'Tanpa itu dokumen tidak punya tempat menempel.'), ['aktif' => 'dokumen']);
     return;
@@ -100,7 +100,6 @@ $labelStatus = [
 
 ob_start();
 ?>
-<link rel="stylesheet" href="<?= e(BASE_URL) ?>aset/css/dokumen.css?v=1">
 
 <?php if ($flash): ?>
   <?= callout($flash[0] === 'ok' ? 'ok' : 'bad',

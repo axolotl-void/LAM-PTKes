@@ -36,4 +36,4 @@ $isi .= kartu($judul, '<form class="grid-form" method="post" action="' . e(BASE_
     . '<p class="foot-note">Tahun lulus terisi otomatis dari tanggal lulus bila dikosongkan. '
     . 'Status Lulus wajib punya tanggal lulus.</p>', ['catatan' => 'Prodi ' . $prodiNm]);
 
-render($judul, $css . $isi, ['aktif' => 'mahasiswa', 'sub' => 'Prodi ' . $prodiNm]);
+render($judul, $isi, ['aktif' => 'mahasiswa', 'sub' => 'Prodi ' . $prodiNm]);

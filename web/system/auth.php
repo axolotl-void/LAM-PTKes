@@ -58,7 +58,14 @@ function prodi_aktif(): ?int
     if (!empty($u['prodi_id'])) {
         return (int) $u['prodi_id'];
     }
-    return isset($_SESSION['prodi_id']) ? (int) $_SESSION['prodi_id'] : null;
+    if (isset($_SESSION['prodi_id'])) {
+        return (int) $_SESSION['prodi_id'];
+    }
+    // Admin/Pimpinan tidak terikat prodi. Di desain lama (mockup/views.js)
+    // switch prodi selalu punya satu prodi terpilih, jadi halaman tidak pernah
+    // kosong. Perilaku itu disamakan: default ke prodi pertama, bukan error.
+    $pertama = qv('SELECT id FROM prodi WHERE aktif = 1 ORDER BY id LIMIT 1', [], null);
+    return $pertama !== null ? (int) $pertama : null;
 }
 
 /** 0 tidak boleh, 1 boleh, 2 hanya lihat. */

@@ -16,8 +16,8 @@ require_once __DIR__ . '/proses.php';
 /** CSS modul. layout.php dibekukan dan hanya memuat app.css. */
 function gaya_tabel(): string
 {
-    return '<link rel="stylesheet" href="' . e(BASE_URL) . 'aset/css/kerangka.css?v=1">'
-         . '<link rel="stylesheet" href="' . e(BASE_URL) . 'aset/css/tabel.css?v=1">';
+
+
 }
 
 $aksi = preg_replace('/[^a-z]/', '', $_GET['a'] ?? 'index');
@@ -258,7 +258,7 @@ if ($aksi === 'lihat') {
             ? sprintf('Satu baris = satu record · halaman %d dari %d', $hal, $halMax)
             : 'Satu baris = satu record']);
     if ($bisaIsi) {
-        $isi .= '<script src="' . e(BASE_URL) . 'aset/js/tabel.js?v=1" defer></script>';
+        $isi .= '<script src="' . e(BASE_URL) . 'assets/js/tabel.js?v=1" defer></script>';
     }
 
     render($info['judul'], $isi, [
