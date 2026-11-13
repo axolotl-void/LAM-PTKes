@@ -10,7 +10,7 @@
  */
 import { icon } from './icons.js';
 import { D, PRODI, PERIODE, INSTRUMEN, KONSISTENSI_GAGAL, esc, badge } from './pagekit.js';
-import { R, boleh } from './api.js';
+import { R, boleh, EKSPOR } from './api.js';
 
 export { esc, nf, head, strip, badge, card, cardHead, callout, dlist, mbar, empty, table }
   from './pagekit.js';
@@ -117,11 +117,15 @@ export function sidebar(page, state) {
     <div class="sb-foot">
       <div class="nav-label">EKSPOR PRODI INI</div>
       <div class="export-row">
-        ${D.penghalang.length
-          ? `<button class="btn btn-ghost" disabled title="Terkunci: ${D.penghalang.length} penghalang">PDF</button>
-             <button class="btn btn-ghost" disabled title="Terkunci: ${D.penghalang.length} penghalang">XLSX</button>`
-          : `<button class="btn btn-warn" data-export="pdf">PDF</button>
-             <button class="btn btn-ghost" data-export="xlsx">XLSX</button>`}
+        ${(EKSPOR.boleh === true)
+          ? `<button class="btn btn-ghost" data-export="pdf" title="Belum tersedia">PDF</button>
+             <button class="btn btn-warn" data-export="xlsx">XLSX</button>`
+          : `<button class="btn btn-ghost" disabled title="${EKSPOR.boleh === null
+              ? 'Menunggu pemeriksaan server'
+              : 'Terkunci: ' + (EKSPOR.blokir.length || 0) + ' hal harus diperbaiki'}">PDF</button>
+             <button class="btn btn-ghost" disabled title="${EKSPOR.boleh === null
+              ? 'Menunggu pemeriksaan server'
+              : 'Terkunci: ' + (EKSPOR.blokir.length || 0) + ' hal harus diperbaiki'}">XLSX</button>`}
       </div>
       ${D.blokir ? `<div class="foot-note" style="margin-top:6px;color:var(--warn)">terkunci · ${D.blokir} blokir${D.penghalang.length - D.blokir ? ` + ${D.penghalang.length - D.blokir} peringatan` : ''}</div>` : ''}
     </div>`;

@@ -181,7 +181,10 @@ function boot() {
   const mq = window.matchMedia('(min-width: 901px)');
   mq.addEventListener('change', (e) => { if (e.matches) setDrawer(false); });
 
-  document.addEventListener('click', (e) => {
+  // Listener ini memuat handler ekspor yang memakai await, jadi harus async.
+  // Tanpa `async`, seluruh berkas gagal di-parse dan aplikasi tampil kosong —
+  // bukan hanya tombol ekspornya yang mati.
+  document.addEventListener('click', async (e) => {
     const nav = e.target.closest('[data-nav]');
     if (nav) { location.hash = `#/${nav.dataset.nav}`; setDrawer(false); return; }
 
@@ -279,8 +282,46 @@ function boot() {
 
     const ex = e.target.closest('[data-export]');
     if (ex) {
-      alert(`Ekspor ${ex.dataset.export.toUpperCase()} untuk prodi ${state.prodi}.\n` +
-            `Butuh endpoint: GET /api/ekspor?prodi=...&format=${ex.dataset.export}`);
+      // XLSX sudah tersedia; PDF belum. Jangan beri tombol yang sama-sama
+      // berbunyi seolah dua-duanya jalan.
+      if (ex.dataset.export !== 'xlsx') {
+        alert('Ekspor PDF belum dibuat. Pakai XLSX dulu.');
+        return;
+      }
+      // Cek dulu apakah memang boleh. Blokirnya bukan kemewahan: file dengan
+      // angka tidak konsisten antar tabel lebih berbahaya daripada tidak ada
+      // file, karena asesor bisa memakainya untuk menolak.
+      ex.disabled = true;
+      const label = ex.textContent;
+      ex.textContent = 'Menyiapkan…';
+      try {
+        const cek = await fetch('/api/ekspor/cek', { credentials: 'same-origin' }).then((r) => r.json());
+        if (!cek.boleh) {
+          const pesan = (cek.blokir || []).map((b) => '• ' + b.pesan).join('\n');
+          alert('Ekspor belum bisa:\n\n' + pesan);
+          return;
+        }
+        const r = await fetch('/api/ekspor/xlsx', { credentials: 'same-origin' });
+        if (!r.ok) {
+          const j = await r.json().catch(() => ({}));
+          alert(j.error || `Gagal mengekspor (HTTP ${r.status}).`);
+          return;
+        }
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Data-Dukung-${state.prodi || 'prodi'}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert('Server tidak merespons. Berkas belum dibuat.');
+      } finally {
+        ex.disabled = false;
+        ex.textContent = label;
+      }
     }
   });
 

@@ -36,6 +36,7 @@ foreach ($berkas as $f) {
     @unlink($tmp);
 
     $rel = str_replace($akar . '/', '', $f);
+
     if ($kode === 0) {
         printf("  ok   %s\n", $rel);
     } else {

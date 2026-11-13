@@ -179,10 +179,20 @@ export const DOKUMEN = {
 };
 
 /* konsistensi: 2 pemeriksaan lintas tabel yang gagal */
-export const KONSISTENSI_GAGAL = [
-  ['Tabel 5 vs Tabel 2', 'lulusan tepat waktu 41, tapi Tabel 2 mencatat 44 lulus TS-2'],
-  ['Tabel 34 vs Tabel 33', 'penggunaan dana TS-1 99,9% — harus tepat 100%'],
-];
+/**
+ * Temuan konsistensi yang MEMBLOKIR ekspor.
+ *
+ * KENAPA KOSONG: dulu isinya dua temuan karangan dari desain awal
+ * ("lulusan tepat waktu 41, tapi Tabel 2 mencatat 44"). Angka itu tidak
+ * berasal dari database mana pun, dan akibatnya tombol ekspor terkunci
+ * selamanya untuk data yang sebenarnya bersih.
+ *
+ * Sumber yang benar sudah ada: GET /api/konsistensi + ekspor_blokir() di
+ * server. Sidebar kini membacanya dari sana. Daftar ini dibiarkan kosong
+ * sebagai cadangan kalau server tidak merespons — dan kalau server mati,
+ * ekspor memang seharusnya tidak jalan.
+ */
+export const KONSISTENSI_GAGAL = [];
 
 /* tabel terbaru (baris 3 dashboard) — tabel, judul, status, ket, aksi */
 export const TABEL_TERBARU = [
@@ -433,15 +443,25 @@ export const D = (() => {
 
   // penghalang ekspor: ekspor terkunci selama salah satu terisi
   const penghalang = [
-    { t: `${konflik} akun memegang peran ganda`, d: 'Data yang diisi bisa disetujui sendiri.', ke: 'pengguna', aksi: 'Buka Pengguna →', jenis: 'blokir' },
+    // Akun berperan ganda TIDAK lagi dihitung dari PENGGUNA di berkas ini.
+    // Snapshot desain itu bisa memuat akun yang sudah tidak ada di DB, dan
+    // akibatnya tombol ekspor terkunci selamanya. Server memeriksanya sendiri
+    // lewat ekspor_blokir() → /api/ekspor/cek, yang membaca tabel pengguna
+    // sungguhan. Sidebar tidak boleh punya pendapat kedua soal ini.
     // Tabel 30 termasuk "Khusus Profesi". Untuk prodi UBBG (S1 + Profesi)
     // tabel ini tidak wajib, jadi tidak boleh mengunci ekspor. Temuannya tetap
     // tampil di halaman Kerja Sama sebagai peringatan, karena Wahana itu masih
     // dipakai praktik dan MoU-nya lewat masa.
     { t: `${mouExpired} wahana praktik tanpa MoU berlaku`, d: 'Dipisahkan dari kapasitas, tapi MoU-nya perlu diperpanjang sebelum asesor datang.', ke: 'kerjasama', aksi: 'Buka Kerja Sama →', jenis: 'peringatan' },
-    { t: `${239 - MK.length} baris Tabel 1 belum diimpor`, d: 'Selama belum, kurikulum tidak bisa diekspor.', ke: 'kurikulum', aksi: 'Lanjutkan impor →', jenis: 'peringatan' },
+    // Peringatan saja (bukan blokir): jumlah baris Tabel 1 tidak boleh
+    // mengunci ekspor seluruh prodi.
+    ...(MK.length < 239 ? [{ t: `${239 - MK.length} baris Tabel 1 belum diimpor`, d: 'Kurikulum belum lengkap; lengkapi sebelum asesmen.', ke: 'kurikulum', aksi: 'Lanjutkan impor →', jenis: 'peringatan' }] : []),
+    // Temuan konsistensi: server yang menentukan (konsistensi_blokir()).
+    // Snapshot di berkas ini pernah memuat dua temuan karangan yang mengunci
+    // ekspor tanpa sebab nyata. Kalau KONSISTENSI_GAGAL terisi, itu hanya
+    // berlaku sebagai peringatan tampilan — bukan blokir.
     ...KONSISTENSI_GAGAL.map(([a, d]) => ({
-      t: a, d, ke: 'konsistensi', aksi: 'Periksa →', jenis: 'blokir',
+      t: a, d, ke: 'konsistensi', aksi: 'Periksa →', jenis: 'peringatan',
     })),
   ].filter((x) => !x.t.startsWith('0 '));
 

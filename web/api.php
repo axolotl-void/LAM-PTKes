@@ -37,6 +37,7 @@ require_once __DIR__ . '/system/kelompok.php';
 require_once __DIR__ . '/system/tarik.php';
 require_once __DIR__ . '/system/tabel15.php';
 require_once __DIR__ . '/system/hitung_peta.php';
+require_once __DIR__ . '/system/ekspor.php';
 require_once __DIR__ . '/spesifikasi/tabel.php';
 
 /* ── util ───────────────────────────────────────────────────────── */
@@ -433,6 +434,34 @@ if ($r0 === 'kerjasama') {
         json_keluar(mitra_hapus($id));
     }
     json_keluar(['error' => 'metode tidak didukung'], 405);
+}
+
+/* ── ekspor ─────────────────────────────────────────────────────── */
+if ($r0 === 'ekspor') {
+    wajib_masuk();
+    $p = prodi_aktif();
+    $per = $p ? periode_aktif($p) : null;
+
+    if ($r1 === 'cek') {
+        // Dipakai tombol: apakah boleh ekspor, dan kalau tidak, apa alasannya.
+        // Tanpa ini tombol hanya bisa mati tanpa penjelasan.
+        $b = ekspor_blokir($p);
+        json_keluar([
+            'boleh' => $b === [],
+            'blokir' => array_map(fn($x) => [
+                'kode' => $x['kode'], 'nama' => $x['nama'], 'pesan' => $x['pesan'],
+            ], $b),
+        ]);
+    }
+
+    if ($r1 === 'xlsx') {
+        if (!$p) {
+            json_keluar(['error' => 'Prodi belum dipilih.'], 409);
+        }
+        ekspor_xlsx_kirim($p, $per ? (int) $per['id'] : null);
+    }
+
+    json_keluar(['error' => 'format belum didukung'], 404);
 }
 
 /* ── identitas / periode / keuangan ─────────────────────────────── */

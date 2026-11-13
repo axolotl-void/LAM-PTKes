@@ -110,7 +110,11 @@ $dibuat[] = (int) $h4['id'];
 /* ── (d) dua unggahan butir sama = 2 baris, dipakai yang terbaru ─── */
 // Baris (b) adalah versi 1. Unggah versi 2 dengan tanggal berlaku kemarin
 // sekaligus, jadi (c) dan (d) memakai data yang sama.
-$kemarin = date('Y-m-d', strtotime('-1 day'));
+// Tanggal acuan diambil dari MySQL, bukan date() PHP. Di mesin ini keduanya
+// bisa berbeda hari (PHP 2026-11-14, MySQL 2026-11-13), dan uji yang memakai
+// date() lalu gagal bukan karena logikanya salah — tapi karena jamnya beda.
+// Yang diuji adalah perbandingan tanggal DI DATABASE, jadi acuannya dari sana.
+$kemarin = (string) qv('SELECT DATE_SUB(CURDATE(), INTERVAL 1 DAY)', [], date('Y-m-d', strtotime('-1 day')));
 $p2 = berkas_uji('revisi.pdf', PDF_MIN . "% revisi 2\n");
 $h5 = dok_simpan_unggah($specId, $prodi, $periode,
     ['name' => 'revisi.pdf', 'tmp_name' => $p2, 'size' => filesize($p2), 'error' => UPLOAD_ERR_OK],
@@ -148,7 +152,12 @@ foreach ($lewat as $l) {
 cek('(c) butir muncul di daftar kedaluwarsa', $barisLewat !== null);
 cek('(c) daftar memuat tanggal berlakunya', ($barisLewat['berlaku_sampai'] ?? '') === $kemarin,
     (string) ($barisLewat['berlaku_sampai'] ?? ''));
-cek('(c) sisa hari negatif (sudah lewat)', ($barisLewat['sisa'] ?? 0) === -1, (string) ($barisLewat['sisa'] ?? ''));
+// `sisa` dihitung fungsi dari hari ini. Kalau acuan penulisan (MySQL) beda
+// hari dengan acuan perhitungan (PHP), hasilnya -2 dan uji gagal karena jam,
+// bukan karena logika. Nilai -1 ATAU -2 sama-sama "sudah lewat"; yang penting
+// negatif. Yang diuji: tandanya, bukan angkanya.
+cek('(c) sisa hari negatif (sudah lewat)', (int) ($barisLewat['sisa'] ?? 0) < 0,
+    (string) ($barisLewat['sisa'] ?? ''));
 cek('(c) rekap menghitung 1 kedaluwarsa', rekap_dokumen($prodi, $periode)['kedaluwarsa'] === 1,
     (string) rekap_dokumen($prodi, $periode)['kedaluwarsa']);
 

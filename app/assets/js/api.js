@@ -56,10 +56,30 @@ export const hanyaLihat = (aksi) => SESI.data?.akses?.[aksi] === 2;
    Dengan objek yang isinya diganti, semua pemegang referensi ikut melihat. */
 export const LIVE = { ringkasan: null, tabel: null, pengguna: null, siap: false };
 
+/* Status ekspor menurut SERVER. `boleh: null` = belum tahu (server mati).
+   Tombol ekspor mengikuti ini, bukan snapshot desain di data.js: snapshot
+   memuat akun dan temuan karangan yang bisa mengunci ekspor selamanya.
+   Objek mutable supaya bisa diisi ulang tanpa rebind binding. */
+export const EKSPOR = { boleh: null, blokir: [] };
+
+export async function muatEkspor() {
+  try {
+    const r = await fetch('/api/ekspor/cek', { credentials: 'same-origin' });
+    if (r.ok) {
+      const j = await r.json();
+      EKSPOR.boleh = !!j.boleh;
+      EKSPOR.blokir = j.blokir || [];
+    }
+  } catch (_) { /* biarkan null: tombol mati lebih baik daripada berkas tidak sah */ }
+}
+
 export async function hydrate() {
   const [s, r, t, p] = await Promise.all([
     api.saya(), api.ringkasan(), api.tabel(), api.pengguna(),
   ]);
+  // Status ekspor ikut dimuat di sini supaya tombol di sidebar tahu
+  // keputusan server sejak render pertama, bukan setelah diklik.
+  await muatEkspor();
   SESI.data = s ? s.sesi : null;
   SESI.aksi = s ? s.aksi : [];
   if (r && t) {

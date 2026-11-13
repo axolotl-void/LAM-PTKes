@@ -175,6 +175,11 @@ function rekap_dokumen(int $prodiId, int $periodeId): array
     $unggah = (int) qv(
         'SELECT COUNT(DISTINCT dok_spec_id) FROM dokumen_unggah
          WHERE prodi_id = ? AND periode_id = ?', [$prodiId, $periodeId], 0);
+    // Batas kedaluwarsa diambil dari CURDATE() MySQL, BUKAN date() PHP.
+    // Di mesin ini keduanya bisa berbeda hari (PHP 2026-11-14, MySQL
+    // 2026-11-13), dan akibatnya dokumen yang sudah lewat tidak terhitung
+    // kedaluwarsa. Satu sumber waktu: server database, karena data tanggal
+    // disimpan dan dibandingkan di sana.
     $kedaluwarsa = (int) qv(
         'SELECT COUNT(DISTINCT dok_spec_id) FROM dokumen_unggah
          WHERE prodi_id = ? AND periode_id = ? AND berlaku_sampai IS NOT NULL
