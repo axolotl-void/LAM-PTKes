@@ -30,6 +30,7 @@ require_once __DIR__ . '/system/view.php';
 require_once __DIR__ . '/system/rekap.php';
 require_once __DIR__ . '/system/data.php';
 require_once __DIR__ . '/system/kerjasama.php';
+require_once __DIR__ . '/system/dosen.php';
 require_once __DIR__ . '/spesifikasi/tabel.php';
 
 /* ── util ───────────────────────────────────────────────────────── */
@@ -334,6 +335,45 @@ if ($r0 === 'kerjasama') {
         $b = input_json();
         $id = (int) ($b['id'] ?? $r1);
         json_keluar(mitra_hapus($id));
+    }
+    json_keluar(['error' => 'metode tidak didukung'], 405);
+}
+
+/* ── dosen & tendik ─────────────────────────────────────────────── */
+if ($r0 === 'dosen') {
+    wajib_masuk();
+
+    if ($metode === 'GET') {
+        $saring = [
+            'jenis' => $_GET['jenis'] ?? '',
+            'prodi' => $_GET['prodi'] ?? '',
+            'cari' => $_GET['cari'] ?? '',
+        ];
+        $daftar = dosen_daftar($saring);
+        json_keluar([
+            'dosen' => $daftar,
+            'ringkas' => dosen_ringkas($daftar),
+            'pilihan' => [
+                'jenis' => DOSEN_JENIS, 'jabatan' => DOSEN_JABATAN,
+                'profesi' => DOSEN_PROFESI, 'tahap' => DOSEN_TAHAP,
+                'jenjang' => DOSEN_JENJANG,
+            ],
+            'prodi' => q('SELECT id, nama_ps FROM prodi WHERE aktif = 1 ORDER BY id'),
+            'boleh_ubah' => boleh('ISI'),
+        ]);
+    }
+
+    if ($metode === 'POST') {
+        wajib('ISI');
+        $b = input_json();
+        $hasil = dosen_simpan($b, (int) ($b['id'] ?? 0));
+        json_keluar($hasil, isset($hasil['error']) ? 400 : 200);
+    }
+
+    if ($metode === 'DELETE') {
+        wajib('ISI');
+        $b = input_json();
+        json_keluar(dosen_nonaktifkan((int) ($b['id'] ?? $r1)));
     }
     json_keluar(['error' => 'metode tidak didukung'], 405);
 }

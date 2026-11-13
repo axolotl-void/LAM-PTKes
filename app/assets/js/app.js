@@ -104,7 +104,10 @@ window.__paint = () => paint();
 /* Halaman yang memuat datanya sendiri (kerjasama/Tabel 38): panggil `muat()`
    modulnya setelah render. Dideklarasikan SEBELUM dipakai oleh listener
    hashchange — `const` tidak di-hoist seperti function. */
-const pemuat = { kerjasama: () => import('./pages/kerjasama.js').then((m) => m.muat?.()) };
+const pemuat = {
+  kerjasama: () => import('./pages/kerjasama.js').then((m) => m.muat?.()),
+  dosen: () => import('./pages/dosen.js').then((m) => m.muat?.()),
+};
 function muatHalaman() {
   const p = page();
   if (pemuat[p]) pemuat[p]();
