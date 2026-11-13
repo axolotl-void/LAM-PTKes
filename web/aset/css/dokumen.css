@@ -1,0 +1,67 @@
+/* Modul Dokumen Pendukung — hanya komponen yang belum ada di app.css.
+   Nama kelas berawalan .dok- supaya tidak bentrok dengan modul lain. */
+
+/* Perhatian kedaluwarsa: tabel sendiri, bukan callout panjang — tanggal dan
+   sisa hari harus terbaca per baris saat dicetak hitam-putih. */
+.dok-perhatian { border-color: #F9C6C0; padding-left: 0; padding-right: 0; }
+.dok-perhatian .tbl { margin: 0; }
+.dok-lewat-hari { white-space: nowrap; font-weight: 600; color: var(--bad); }
+
+/* Kepala kartu kriteria: bar di bawah judul mengkodekan porsi unggah dari
+   total butir kriteria itu — besaran yang sama dengan angka di sebelahnya. */
+.dok-krit-head { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px;
+  align-items: baseline; margin-bottom: 10px; }
+.dok-krit-head h2 { grid-column: 1; }
+.dok-krit-head .bar { grid-column: 1 / -1; }
+.dok-jumlah { font-size: var(--fs-sm); color: var(--ink2); white-space: nowrap; }
+
+.dok-tabel td { vertical-align: top; }
+.dok-tabel .dok-c-no { width: 34px; }
+.dok-tabel .dok-c-status { width: 118px; }
+.dok-tabel .dok-c-berkas { min-width: 190px; }
+.dok-tabel .dok-c-tgl,
+.dok-tabel .dok-c-berlaku { width: 104px; white-space: nowrap; }
+.dok-tabel .dok-c-aksi { width: 112px; }
+
+.dok-nama { font-weight: 600; max-width: 62ch; }
+.dok-berkas { display: block; word-break: break-word; }
+.dok-berkas-nama { font-weight: 600; word-break: break-word; }
+.dok-meta, .dok-sisa { font-size: var(--fs-xs); color: var(--ink3); margin-top: 2px; }
+.dok-sisa { color: var(--bad); font-weight: 600; }
+.dok-sorot td { background: var(--ind-t); }
+
+.dok-rincian summary { font-size: var(--fs-xs); color: var(--ink3); cursor: pointer; }
+.dok-rincian p { font-size: var(--fs-sm); color: var(--ink2); margin-top: 4px; max-width: 70ch; }
+
+/* Form unggah dibuka lewat details: tanpa JS, tanpa modal. */
+.dok-form > summary { list-style: none; cursor: pointer; }
+.dok-form > summary::-webkit-details-marker { display: none; }
+.dok-form[open] > summary { visibility: hidden; height: 0; min-height: 0; padding: 0; }
+.dok-isi {
+  display: grid; gap: 8px; margin-top: 6px; padding: 10px;
+  border: 1px solid var(--bd); border-radius: 8px; background: var(--bg);
+  min-width: 232px;
+}
+.dok-isi label { display: grid; gap: 4px; font-size: var(--fs-xs); font-weight: 600; color: var(--ink2); }
+.dok-isi input { font: inherit; font-size: var(--fs-sm); padding: 6px 8px;
+  border: 1px solid var(--bd); border-radius: 6px; background: var(--surf); width: 100%; }
+.dok-isi input[type="file"] { padding: 4px; }
+.dok-isi .btn { justify-self: start; }
+.dok-isi .foot-note { margin: 0; }
+
+.dok-riwayat summary { font-size: var(--fs-xs); color: var(--ink2); cursor: pointer; font-weight: 600; }
+.dok-riwayat ol { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 4px; font-size: var(--fs-sm); }
+.dok-riwayat li { color: var(--ink2); }
+.dok-hapus { display: inline; }
+.dok-tautan {
+  border: 0; background: none; padding: 0; margin-left: 6px; cursor: pointer;
+  color: var(--bad); font: inherit; font-size: var(--fs-xs); text-decoration: underline;
+}
+.dok-riwayat-baris td { background: var(--bg); }
+
+@media (max-width: 720px) {
+  .dok-tabel .dok-c-tgl { display: none; }
+  .dok-isi { min-width: 0; }
+  .dok-krit-head { grid-template-columns: 1fr; }
+  .dok-jumlah { white-space: normal; }
+}

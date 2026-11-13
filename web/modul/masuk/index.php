@@ -20,6 +20,21 @@ if ($aksi === 'keluar') {
     alihkan(BASE_URL . 'index.php?m=masuk');
 }
 
+/* ── masuk lewat SPMI (SSO) ─────────────────────────────────────── */
+// Token datang dari SPMI lewat tautan, jadi tidak ada POST dan tidak ada CSRF:
+// yang membuktikan keasliannya tanda tangan HMAC, bukan token form.
+if ($aksi === 'sso') {
+    require_once __DIR__ . '/../../system/sso.php';
+
+    $hasil = sso_terima((string) ($_GET['t'] ?? ''));
+    if ($hasil['ok']) {
+        alihkan(BASE_URL . 'index.php');
+    }
+    // Galat ditampilkan di form masuk, bukan halaman putih: pengguna masih
+    // punya jalan masuk lain (sandi lokal) dari halaman yang sama.
+    $galat = $hasil['pesan'];
+}
+
 /* ── masuk lokal ────────────────────────────────────────────────── */
 if ($aksi === 'proses') {
     csrf_periksa();

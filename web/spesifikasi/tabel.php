@@ -5,7 +5,7 @@ declare(strict_types=1);
  *  Angka: 38 tabel, 243 field. */
 return [
     '01' => [
-        'nomor' => 1, 'kriteria' => '2', 'khusus' => false,
+        'nomor' => 1, 'kriteria' => 'K2', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'Nomor urut'],
             ['urut'=>2,'label'=>'Kode dan Nama MK','kunci'=>'kode_dan_nama_mk','tipe'=>'relasi ke Mata Kuliah','asal'=>'Master','ket'=>'Kolom dari master MK'],
@@ -22,7 +22,7 @@ return [
         ],
     ],
     '02' => [
-        'nomor' => 2, 'kriteria' => '3', 'khusus' => false,
+        'nomor' => 2, 'kriteria' => 'K3', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Tahun Akademik','kunci'=>'tahun_akademik','tipe'=>'tahun akademik','asal'=>'Hitung','ket'=>'TS-7 sampai TS'],
@@ -33,7 +33,7 @@ return [
         ],
     ],
     '03' => [
-        'nomor' => 3, 'kriteria' => '3', 'khusus' => false,
+        'nomor' => 3, 'kriteria' => 'K3', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'Tahun Akademik','kunci'=>'tahun_akademik','tipe'=>'tahun akademik','asal'=>'Hitung','ket'=>'TS-2, TS-1, TS'],
             ['urut'=>2,'label'=>'Jumlah lulusan reguler','kunci'=>'jumlah_lulusan_reguler','tipe'=>'angka','asal'=>'Hitung','ket'=>'Dari master mahasiswa, jalur masuk = Reguler'],
@@ -48,7 +48,7 @@ return [
         ],
     ],
     '04' => [
-        'nomor' => 4, 'kriteria' => '3', 'khusus' => true,
+        'nomor' => 4, 'kriteria' => 'K3', 'khusus' => true,
         'fields' => [
             ['urut'=>1,'label'=>'Semester Akademik','kunci'=>'semester_akademik','tipe'=>'tahun akademik','asal'=>'Hitung','ket'=>'SS-5 sampai SS'],
             ['urut'=>2,'label'=>'Jumlah lulusan reguler','kunci'=>'jumlah_lulusan_reguler','tipe'=>'angka','asal'=>'Hitung','ket'=>'Dari mahasiswa tahap profesi'],
@@ -61,7 +61,7 @@ return [
         ],
     ],
     '05' => [
-        'nomor' => 5, 'kriteria' => '3', 'khusus' => false,
+        'nomor' => 5, 'kriteria' => 'K3', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'Tahun Masuk','kunci'=>'tahun_masuk','tipe'=>'tahun akademik','asal'=>'Hitung','ket'=>'Satu baris per angkatan'],
             ['urut'=>2,'label'=>'Jumlah mahasiswa per angkatan pada TS-6 ... TS','kunci'=>'jumlah_mahasiswa_per_angkatan_pada_ts_6_ts','tipe'=>'angka','asal'=>'Hitung','ket'=>'Kolom tahun digeser otomatis mengikuti tahun_ts'],
@@ -70,7 +70,7 @@ return [
         ],
     ],
     '06' => [
-        'nomor' => 6, 'kriteria' => '3', 'khusus' => true,
+        'nomor' => 6, 'kriteria' => 'K3', 'khusus' => true,
         'fields' => [
             ['urut'=>1,'label'=>'Tahun Masuk','kunci'=>'tahun_masuk','tipe'=>'tahun akademik','asal'=>'Hitung','ket'=>'TS-3 sampai TS'],
             ['urut'=>2,'label'=>'Jumlah mahasiswa per angkatan','kunci'=>'jumlah_mahasiswa_per_angkatan','tipe'=>'angka','asal'=>'Hitung','ket'=>'-'],
@@ -78,7 +78,7 @@ return [
         ],
     ],
     '07' => [
-        'nomor' => 7, 'kriteria' => '3', 'khusus' => true,
+        'nomor' => 7, 'kriteria' => 'K3', 'khusus' => true,
         'fields' => [
             ['urut'=>1,'label'=>'Tahun/Semester','kunci'=>'tahun_semester','tipe'=>'tahun akademik','asal'=>'Input','ket'=>'TS-2, TS-1, TS'],
             ['urut'=>2,'label'=>'Mahasiswa selesai praktik klinik/stase','kunci'=>'mahasiswa_selesai_praktik_klinik_stase','tipe'=>'angka','asal'=>'Hitung','ket'=>'Dari master mahasiswa dan stase'],
@@ -94,7 +94,7 @@ return [
         ],
     ],
     '08' => [
-        'nomor' => 8, 'kriteria' => '3', 'khusus' => true,
+        'nomor' => 8, 'kriteria' => 'K3', 'khusus' => true,
         'fields' => [
             ['urut'=>1,'label'=>'Tahun','kunci'=>'tahun','tipe'=>'tahun akademik','asal'=>'Input','ket'=>'Struktur identik Tabel 7'],
             ['urut'=>2,'label'=>'Mahasiswa selesai stase','kunci'=>'mahasiswa_selesai_stase','tipe'=>'angka','asal'=>'Hitung','ket'=>'-'],
@@ -106,7 +106,7 @@ return [
         ],
     ],
     '09' => [
-        'nomor' => 9, 'kriteria' => '4', 'khusus' => false,
+        'nomor' => 9, 'kriteria' => 'K4', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'Program Studi','kunci'=>'program_studi','tipe'=>'relasi','asal'=>'Master','ket'=>'Satu baris per prodi dalam UPPS'],
             ['urut'=>2,'label'=>'Mahasiswa reguler','kunci'=>'mahasiswa_reguler','tipe'=>'angka','asal'=>'Hitung','ket'=>'-'],
@@ -115,7 +115,7 @@ return [
         ],
     ],
     '10' => [
-        'nomor' => 10, 'kriteria' => '4', 'khusus' => false,
+        'nomor' => 10, 'kriteria' => 'K4', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'Tahun Akademik','kunci'=>'tahun_akademik','tipe'=>'tahun akademik','asal'=>'Input','ket'=>'TS-4 sampai TS'],
             ['urut'=>2,'label'=>'Daya tampung','kunci'=>'daya_tampung','tipe'=>'angka','asal'=>'Input','ket'=>'Input, tidak bisa dihitung'],
@@ -130,7 +130,7 @@ return [
         ],
     ],
     '11' => [
-        'nomor' => 11, 'kriteria' => '4', 'khusus' => true,
+        'nomor' => 11, 'kriteria' => 'K4', 'khusus' => true,
         'fields' => [
             ['urut'=>1,'label'=>'Tahun Akademik','kunci'=>'tahun_akademik','tipe'=>'tahun akademik','asal'=>'Input','ket'=>'TS-2 sampai TS'],
             ['urut'=>2,'label'=>'Daya tampung','kunci'=>'daya_tampung','tipe'=>'angka','asal'=>'Input','ket'=>'-'],
@@ -140,7 +140,7 @@ return [
         ],
     ],
     '12' => [
-        'nomor' => 12, 'kriteria' => '4', 'khusus' => false,
+        'nomor' => 12, 'kriteria' => 'K4', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Input','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Aspek yang diukur','kunci'=>'aspek_yang_diukur','tipe'=>'Teks','asal'=>'Master','ket'=>'Dosen (4 sub), Tenaga kependidikan (4 sub), dst'],
@@ -150,7 +150,7 @@ return [
         ],
     ],
     '13' => [
-        'nomor' => 13, 'kriteria' => '4', 'khusus' => false,
+        'nomor' => 13, 'kriteria' => 'K4', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'Tahun Lulus','kunci'=>'tahun_lulus','tipe'=>'tahun akademik','asal'=>'Input','ket'=>'TS-2, TS-1, TS'],
             ['urut'=>2,'label'=>'Jumlah lulusan','kunci'=>'jumlah_lulusan','tipe'=>'angka','asal'=>'Hitung','ket'=>'Dari master mahasiswa'],
@@ -161,7 +161,7 @@ return [
         ],
     ],
     '14' => [
-        'nomor' => 14, 'kriteria' => '4', 'khusus' => false,
+        'nomor' => 14, 'kriteria' => 'K4', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Input','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Jenis kemampuan','kunci'=>'jenis_kemampuan','tipe'=>'Teks','asal'=>'Master','ket'=>'Integritas, keahlian, bahasa Inggris, TI, komunikasi, kerja sama, pengembangan diri'],
@@ -171,7 +171,7 @@ return [
         ],
     ],
     '15' => [
-        'nomor' => 15, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 15, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Input','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Hal','kunci'=>'hal','tipe'=>'Teks','asal'=>'Master','ket'=>'Jabatan fungsional dan pendidikan'],
@@ -180,7 +180,7 @@ return [
         ],
     ],
     '16' => [
-        'nomor' => 16, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 16, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama Dosen Tetap','kunci'=>'nama_dosen_tetap','tipe'=>'relasi','asal'=>'Master','ket'=>'Tanda * bila sudah punya sertifikat pendidik'],
@@ -196,7 +196,7 @@ return [
         ],
     ],
     '17' => [
-        'nomor' => 17, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 17, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama Dosen Tetap','kunci'=>'nama_dosen_tetap','tipe'=>'relasi','asal'=>'Master','ket'=>'-'],
@@ -211,7 +211,7 @@ return [
         ],
     ],
     '18' => [
-        'nomor' => 18, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 18, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama Dosen','kunci'=>'nama_dosen','tipe'=>'relasi','asal'=>'Master','ket'=>'-'],
@@ -223,7 +223,7 @@ return [
         ],
     ],
     '19' => [
-        'nomor' => 19, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 19, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama (akademik / profesi)','kunci'=>'nama_akademik_profesi','tipe'=>'relasi','asal'=>'Master','ket'=>'-'],
@@ -237,7 +237,7 @@ return [
         ],
     ],
     '20' => [
-        'nomor' => 20, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 20, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama tenaga ahli/pakar','kunci'=>'nama_tenaga_ahli_pakar','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
@@ -246,7 +246,7 @@ return [
         ],
     ],
     '21' => [
-        'nomor' => 21, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 21, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama dosen pembimbing','kunci'=>'nama_dosen_pembimbing','tipe'=>'relasi','asal'=>'Master','ket'=>'-'],
@@ -258,7 +258,7 @@ return [
         ],
     ],
     '22' => [
-        'nomor' => 22, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 22, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama dosen','kunci'=>'nama_dosen','tipe'=>'relasi','asal'=>'Master','ket'=>'-'],
@@ -271,7 +271,7 @@ return [
         ],
     ],
     '23' => [
-        'nomor' => 23, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 23, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No / Nama dosen / Judul kegiatan PkM','kunci'=>'no_nama_dosen_judul_kegiatan_pkm','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Mata kuliah','kunci'=>'mata_kuliah','tipe'=>'relasi','asal'=>'Master','ket'=>'-'],
@@ -281,7 +281,7 @@ return [
         ],
     ],
     '24' => [
-        'nomor' => 24, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 24, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'Judul','kunci'=>'judul','tipe'=>'Teks','asal'=>'Input','ket'=>'Wajib'],
             ['urut'=>2,'label'=>'Nama dosen','kunci'=>'nama_dosen','tipe'=>'relasi','asal'=>'Master','ket'=>'-'],
@@ -291,7 +291,7 @@ return [
         ],
     ],
     '25' => [
-        'nomor' => 25, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 25, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama dosen/mahasiswa/lembaga','kunci'=>'nama_dosen_mahasiswa_lembaga','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
@@ -300,13 +300,13 @@ return [
         ],
     ],
     '26' => [
-        'nomor' => 26, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 26, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No / Nama / Karya HAKI / Karya berpenghargaan','kunci'=>'no_nama_karya_haki_karya_berpenghargaan','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
         ],
     ],
     '27' => [
-        'nomor' => 27, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 27, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No / Nama dosen','kunci'=>'no_nama_dosen','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Rekognisi/prestasi','kunci'=>'rekognisi_prestasi','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
@@ -316,7 +316,7 @@ return [
         ],
     ],
     '28' => [
-        'nomor' => 28, 'kriteria' => '5', 'khusus' => false,
+        'nomor' => 28, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No / Nama kegiatan','kunci'=>'no_nama_kegiatan','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Waktu penyelenggaraan','kunci'=>'waktu_penyelenggaraan','tipe'=>'tanggal','asal'=>'Input','ket'=>'-'],
@@ -325,7 +325,7 @@ return [
         ],
     ],
     '29' => [
-        'nomor' => 29, 'kriteria' => '6', 'khusus' => false,
+        'nomor' => 29, 'kriteria' => 'K6', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama laboratorium','kunci'=>'nama_laboratorium','tipe'=>'relasi','asal'=>'Master','ket'=>'Dari master laboratorium'],
@@ -339,7 +339,7 @@ return [
         ],
     ],
     '30' => [
-        'nomor' => 30, 'kriteria' => '6', 'khusus' => true,
+        'nomor' => 30, 'kriteria' => 'K6', 'khusus' => true,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama wahana praktik','kunci'=>'nama_wahana_praktik','tipe'=>'relasi','asal'=>'Master','ket'=>'RS, RB, BPM, Puskesmas, RSJ, panti'],
@@ -353,7 +353,7 @@ return [
         ],
     ],
     '31' => [
-        'nomor' => 31, 'kriteria' => '6', 'khusus' => false,
+        'nomor' => 31, 'kriteria' => 'K6', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No / Jenis pustaka','kunci'=>'no_jenis_pustaka','tipe'=>'pilihan','asal'=>'Master','ket'=>'Buku teks, jurnal nasional terakreditasi, jurnal internasional, prosiding'],
             ['urut'=>2,'label'=>'Jumlah judul','kunci'=>'jumlah_judul','tipe'=>'angka','asal'=>'Hitung','ket'=>'COUNT dari master pustaka'],
@@ -361,7 +361,7 @@ return [
         ],
     ],
     '32' => [
-        'nomor' => 32, 'kriteria' => '6', 'khusus' => false,
+        'nomor' => 32, 'kriteria' => 'K6', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'Jenis','kunci'=>'jenis','tipe'=>'pilihan','asal'=>'Input','ket'=>'Jurnal terakreditasi Dikti, jurnal internasional bereputasi'],
             ['urut'=>2,'label'=>'Nama jurnal','kunci'=>'nama_jurnal','tipe'=>'relasi','asal'=>'Master','ket'=>'-'],
@@ -370,7 +370,7 @@ return [
         ],
     ],
     '33' => [
-        'nomor' => 33, 'kriteria' => '6', 'khusus' => false,
+        'nomor' => 33, 'kriteria' => 'K6', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'Sumber dana','kunci'=>'sumber_dana','tipe'=>'pilihan','asal'=>'Master','ket'=>'Mahasiswa, usaha sendiri, pemerintah pusat, pemerintah daerah, lain'],
             ['urut'=>2,'label'=>'Jenis dana','kunci'=>'jenis_dana','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
@@ -379,7 +379,7 @@ return [
         ],
     ],
     '34' => [
-        'nomor' => 34, 'kriteria' => '6', 'khusus' => false,
+        'nomor' => 34, 'kriteria' => 'K6', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Jenis penggunaan','kunci'=>'jenis_penggunaan','tipe'=>'pilihan','asal'=>'Master','ket'=>'Pendidikan (gaji dosen, gaji tendik, operasional pembelajaran, operasional kantor), penelitian, PkM'],
@@ -389,7 +389,7 @@ return [
         ],
     ],
     '35' => [
-        'nomor' => 35, 'kriteria' => '7', 'khusus' => false,
+        'nomor' => 35, 'kriteria' => 'K7', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama program studi','kunci'=>'nama_program_studi','tipe'=>'relasi','asal'=>'Master','ket'=>'Satu baris per prodi'],
@@ -403,7 +403,7 @@ return [
         ],
     ],
     '36' => [
-        'nomor' => 36, 'kriteria' => '7', 'khusus' => false,
+        'nomor' => 36, 'kriteria' => 'K7', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Input','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Jenis dokumen','kunci'=>'jenis_dokumen','tipe'=>'pilihan','asal'=>'Master','ket'=>'Kebijakan, manual, standar, formulir SPMI'],
@@ -411,7 +411,7 @@ return [
         ],
     ],
     '37' => [
-        'nomor' => 37, 'kriteria' => '7', 'khusus' => false,
+        'nomor' => 37, 'kriteria' => 'K7', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama program studi','kunci'=>'nama_program_studi','tipe'=>'relasi','asal'=>'Master','ket'=>'-'],
@@ -424,7 +424,7 @@ return [
         ],
     ],
     '38' => [
-        'nomor' => 38, 'kriteria' => '8', 'khusus' => false,
+        'nomor' => 38, 'kriteria' => 'K8', 'khusus' => false,
         'fields' => [
             ['urut'=>1,'label'=>'No','kunci'=>'no','tipe'=>'Teks','asal'=>'Input','ket'=>'-'],
             ['urut'=>2,'label'=>'Nama instansi','kunci'=>'nama_instansi','tipe'=>'Teks','asal'=>'Input','ket'=>'Wajib'],

@@ -1,0 +1,110 @@
+/* Modul Data Dukung — daftar 38 tabel + form isian banyak baris.
+   app.css sudah memuat token warna, .card, .btn, .badge, .tbl. Di sini hanya
+   yang belum ada: chip saringan, kepala tabel, dan grid form yang harus tetap
+   terbaca di 320px sampai layar lebar. */
+
+/* ───────── daftar ───────── */
+.tf-saring { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.tf-chip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border: 1px solid var(--bd); border-radius: 999px; background: var(--surf);
+  font-size: var(--fs-xs); font-weight: 600; color: var(--ink2);
+}
+.tf-chip:hover { border-color: var(--ind); color: var(--ind); }
+.tf-chip.aktif { background: var(--ind); border-color: var(--ind); color: #fff; }
+.tf-chip.kosong:not(.aktif) { border-style: dashed; color: var(--ink4); }
+.tf-chip .num { font-family: var(--mono); font-size: 10.5px; }
+
+.tf-nomor { font-weight: 700; color: var(--ind); }
+.tf-judul { font-weight: 600; }
+.tf-judul:hover { text-decoration: underline; }
+.tf-krit-nama { font-size: var(--fs-xs); }
+.tf-tanda {
+  display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px;
+  border: 1px dashed var(--bd); font-size: 10px; color: var(--ink3);
+}
+.btn-kecil { min-height: 26px; padding: 0 10px; font-size: var(--fs-xs); }
+.tbl td .btn-kecil { display: inline-flex; }
+
+/* ───────── form satu tabel ───────── */
+.tf-head {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px;
+  padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px solid var(--dv);
+}
+.tf-kode { font-size: var(--fs-sm); font-weight: 700; color: var(--ind); }
+.tf-kriteria { font-size: var(--fs-xs); color: var(--ink3); }
+.tf-status { display: flex; align-items: center; gap: 8px; }
+.tf-terisi { font-size: var(--fs-xs); color: var(--ink3); font-variant-numeric: tabular-nums; }
+.tf-jumlah { font-size: var(--fs-xs); color: var(--ink3); margin-left: auto; }
+.tf-jumlah b { font-size: var(--fs-sm); color: var(--ink1); }
+
+.tf-rincian { list-style: none; display: grid; gap: 4px; font-size: var(--fs-sm); }
+.tf-rincian li { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.tf-sumber {
+  flex: 0 0 auto; padding: 0 6px; border-radius: 4px; font-size: 10px; font-weight: 700;
+  letter-spacing: .03em; text-transform: uppercase; border: 1px solid var(--bd); color: var(--ink2);
+}
+.tf-sumber.tf-input { background: var(--ind-t); border-color: #CFCBE9; color: var(--ind-d); }
+.tf-sumber.tf-master { background: #F2F4F7; }
+.tf-sumber.tf-hitung { background: var(--orn-t); border-color: #F5D9A8; color: #7A2E0E; }
+.tf-sumber.tf-tetap { background: var(--surf); border-style: dashed; color: var(--ink3); }
+
+.tf-pilih-prodi { display: flex; flex-wrap: wrap; gap: 8px; }
+.tf-halaman { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.tf-halaman .tf-chip { min-width: 30px; justify-content: center; font-variant-numeric: tabular-nums; }
+
+.tf-baris-list { display: grid; gap: 10px; }
+.tf-baris {
+  border: 1px solid var(--dv); border-radius: var(--r); padding: 10px 12px 12px;
+  position: relative; background: var(--surf);
+}
+.tf-baris.terkunci { background: var(--bg); }
+.tf-baris legend {
+  display: flex; align-items: center; gap: 8px; padding: 0 6px;
+  font-size: var(--fs-xs); font-weight: 700; color: var(--ink3);
+}
+.tf-baris-no { color: var(--ind); }
+.tf-kunci { color: var(--lock); }
+.tf-hapus {
+  position: absolute; top: 6px; right: 8px; border: 0; background: none; cursor: pointer;
+  font-size: var(--fs-xs); color: var(--bad); text-decoration: underline; padding: 4px;
+}
+.tf-hapus:hover { color: #7A271A; }
+
+/* auto-fit: 1 kolom di 320px, sampai 4 kolom di layar lebar. Tanpa breakpoint
+   karena strukturnya memang cair. */
+.tf-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 8px 10px; }
+.tf-field { display: grid; gap: 3px; min-width: 0; }
+.tf-label { font-size: var(--fs-xs); font-weight: 600; color: var(--ink2); }
+.tf-input {
+  font: inherit; font-size: var(--fs-sm); padding: 6px 8px; width: 100%; min-width: 0;
+  border: 1px solid var(--bd); border-radius: 6px; background: var(--surf); color: var(--ink1);
+}
+.tf-input:focus { outline: 2px solid var(--ind-t); border-color: var(--ind); }
+textarea.tf-input { resize: vertical; }
+.tf-nilai { font-size: var(--fs-sm); color: var(--ink1); word-break: break-word; }
+
+.tf-lain {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 4px 10px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed var(--dv);
+}
+.tf-lain-item { display: flex; gap: 6px; align-items: baseline; font-size: var(--fs-xs); min-width: 0; }
+.tf-lain-item .tf-label { flex: 1; min-width: 0; font-weight: 500; color: var(--ink3); }
+.tf-lain-item .tf-nilai { font-variant-numeric: tabular-nums; }
+
+.tf-aksi {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--dv);
+  position: sticky; bottom: 0; background: var(--surf); padding-bottom: 4px;
+}
+.tf-aksi .btn-primary { margin-left: auto; }
+.tf-hitung { font-size: var(--fs-xs); }
+
+/* Tombol aksi di kepala halaman berisi <form>; jangan turun baris jelek. */
+.page-head .actions form { display: inline-flex; margin: 0; }
+
+@media print {
+  .tf-aksi, .tf-hapus, .tf-saring, .sidebar, .topbar { display: none; }
+  .main { margin: 0; }
+  .tf-baris { break-inside: avoid; }
+}

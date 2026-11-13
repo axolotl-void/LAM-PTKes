@@ -2,7 +2,7 @@
 import json
 
 SPEC = "dokumen-spec.json"
-OUT = "migrasi/004_dokumen.sql"
+OUT = "migrasi/003_dokumen.sql"
 
 dok = json.load(open(SPEC))
 
@@ -38,7 +38,7 @@ sql = ["""-- LAM-PTKes — 004: kriteria, 78 dokumen pendukung, 10 aturan konsis
 -- Dibangkitkan dari db/dokumen-spec.json + db/gen_004.py. Jangan disunting tangan.
 SET NAMES utf8mb4;
 
-CREATE TABLE kriteria (
+CREATE TABLE IF NOT EXISTS kriteria (
   kode       CHAR(2) NOT NULL,
   nama       VARCHAR(160) NOT NULL,
   PRIMARY KEY (kode)

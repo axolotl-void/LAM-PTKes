@@ -5,14 +5,18 @@ declare(strict_types=1);
  * Front controller tunggal.
  *
  * Rute: index.php?m=<modul>&a=<aksi>&...
- *   m=dashboard  a=index
- *   m=tabel      a=index | lihat | simpan | kunci | buka
- *   m=master     a=<entitas> | <entitas>-simpan
- *   m=dokumen    a=index | unggah
+ *
+ *   m=masuk       a=index | proses | keluar | sso
+ *   m=dashboard   a=index
+ *   m=ringkasan   a=index
+ *   m=identitas   a=index | simpan
+ *   m=periode     a=index | simpan
+ *   m=tabel       a=index | lihat | simpan | kunci | buka
+ *   m=master      a=mahasiswa | dosen | mk | wahana | lab | pustaka
+ *   m=dokumen     a=index | unggah
  *   m=konsistensi a=index
- *   m=pengguna   a=index | simpan
- *   m=ekspor     a=pdf | xlsx
- *   m=masuk      a=index | keluar | sso
+ *   m=pengguna    a=index | simpan
+ *   m=ekspor      a=pdf | xlsx
  *
  * Setiap modul ada di modul/<nama>/index.php dan WAJIB memanggil gerbang
  * izinnya sendiri — front controller tidak tahu aksi bisnis apa yang terjadi.
@@ -24,9 +28,27 @@ require_once __DIR__ . '/system/view.php';
 $modul = preg_replace('/[^a-z]/', '', $_GET['m'] ?? 'dashboard');
 $aksi  = preg_replace('/[^a-z0-9\-]/', '', $_GET['a'] ?? 'index');
 
+/* Sidebar memakai nama MENU sebagai `m` (dosen, mahasiswa, kurikulum, sarana,
+   pustaka). Itu bukan nama modul. Dipetakan ke modul `master` dengan aksi
+   yang sesuai, supaya URL di sidebar dan tautan lama tidak 404. */
+const ALIAS_MODUL = [
+    'dosen'     => ['master', 'dosen'],
+    'mahasiswa' => ['master', 'mahasiswa'],
+    'kurikulum' => ['master', 'mk'],
+    'sarana'    => ['master', 'wahana'],
+    'pustaka'   => ['master', 'pustaka'],
+];
+if (isset(ALIAS_MODUL[$modul])) {
+    [$modul, $aksi] = ALIAS_MODUL[$modul];
+    $_GET['a'] = $aksi;
+}
+
 const MODUL = [
     'masuk'       => true,    // tidak butuh sesi
     'dashboard'   => true,
+    'ringkasan'   => true,
+    'identitas'   => true,
+    'periode'     => true,
     'tabel'       => true,
     'master'      => true,
     'dokumen'     => true,

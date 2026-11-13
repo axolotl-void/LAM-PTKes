@@ -42,7 +42,7 @@ function pengguna(): ?array
     if (!$id) {
         return $cache = null;
     }
-    $r = q1('SELECT p.*, pr.nama AS prodi_nama
+    $r = q1('SELECT p.*, pr.nama_ps AS prodi_nama
              FROM pengguna p LEFT JOIN prodi pr ON pr.id = p.prodi_id
              WHERE p.id = ? AND p.aktif = 1', [$id]);
     return $cache = $r ?: null;

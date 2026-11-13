@@ -2,7 +2,7 @@
 -- Dibangkitkan dari db/dokumen-spec.json + db/gen_004.py. Jangan disunting tangan.
 SET NAMES utf8mb4;
 
-CREATE TABLE kriteria (
+CREATE TABLE IF NOT EXISTS kriteria (
   kode       CHAR(2) NOT NULL,
   nama       VARCHAR(160) NOT NULL,
   PRIMARY KEY (kode)

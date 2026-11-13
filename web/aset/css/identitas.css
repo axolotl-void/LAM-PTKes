@@ -1,0 +1,95 @@
+/* Modul Identitas (F-01) & Periode (F-02).
+   Hanya komponen yang belum ada di app.css. Token warna/jarak ikut app.css.
+   Tidak ada angka di sini yang mengklaim besaran data — bar/angka selalu dari hitungan. */
+
+/* ── tata letak dua kolom: isi + rel samping ─────────────────────── */
+.id-grid, .per-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 344px);
+  gap: var(--gap);
+  align-items: start;
+}
+.id-grid > aside, .per-grid > aside { display: grid; gap: var(--gap); }
+.id-grid > aside .card, .per-grid > aside .card { margin-bottom: 0; }
+
+/* ── field form ──────────────────────────────────────────────────── */
+.fld-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+.fld-grid.fld-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.fld { display: grid; gap: 5px; min-width: 0; }
+.fld > label { font-size: var(--fs-xs); font-weight: 600; color: var(--ink2); }
+.fld .req { font-weight: 500; font-size: 9.5px; color: var(--ink4); text-transform: uppercase;
+  letter-spacing: .05em; }
+.fld input[type=text], .fld input[type=email], .fld input[type=tel],
+.fld input[type=number], .fld input[type=date], .fld select {
+  font: inherit; font-size: var(--fs-sm); color: var(--ink1);
+  min-height: 36px; padding: 7px 10px; width: 100%; min-width: 0;
+  background: var(--surf); border: 1px solid var(--bd); border-radius: 6px;
+}
+.fld input[type=date], .fld input[type=number] { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.fld input:focus, .fld select:focus { outline: 2px solid var(--ind-t); border-color: var(--ind); }
+.fld input:disabled, .fld select:disabled { background: #FCFCFD; color: var(--ink2); cursor: not-allowed; }
+.fld .fn { font-size: var(--fs-xs); color: var(--ink3); line-height: 1.45; }
+.fld .fn a { color: var(--ind); text-decoration: underline; }
+
+/* kotak centang: label sejajar, bukan menumpuk di bawah kotak */
+.flag { display: flex; align-items: center; gap: 8px; min-height: 36px;
+  padding: 7px 10px; border: 1px solid var(--bd); border-radius: 6px; background: var(--surf); }
+.flag input { width: 16px; height: 16px; accent-color: var(--ind); flex: 0 0 auto; }
+.flag label { font-size: var(--fs-sm); color: var(--ink1); font-weight: 500; cursor: pointer; }
+
+/* nilai read-only yang bukan input (tanggal berakhir di halaman periode) */
+.id-baca { font-size: var(--fs-sm); font-weight: 600; color: var(--ink1);
+  min-height: 36px; display: flex; align-items: center; gap: 6px;
+  padding: 7px 10px; border: 1px solid var(--dv); border-radius: 6px; background: #FCFCFD; }
+
+/* ── konsekuensi tabel: blok yang berubah saat jenjang/profesi diubah ── */
+.kons {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 16px;
+  align-items: baseline; margin-top: 4px; padding: 12px 14px;
+  background: var(--orn-t); border-left: 3px solid var(--orn); border-radius: 6px;
+}
+.kons-angka { font-size: var(--fs-sm); color: #7A3E00; white-space: nowrap; }
+.kons-angka b { font-family: var(--mono); font-variant-numeric: tabular-nums;
+  font-size: clamp(18px, 1.2vw + 14px, 24px); font-weight: 700; }
+.kons-teks { font-size: var(--fs-xs); color: var(--ink2); line-height: 1.5; }
+.kons-teks b { color: #7A3E00; }
+
+/* ── angka besar di rel ──────────────────────────────────────────── */
+.id-besar { font-size: clamp(20px, 1.4vw + 14px, 28px); font-weight: 700; letter-spacing: -.02em; }
+.id-besar.warn { color: var(--warn); }
+.id-besar.bad { color: var(--bad); }
+
+/* ── baris aksi di bawah form ────────────────────────────────────── */
+.id-aksi { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin: calc(var(--gap) * -1 + 2px) 0 var(--gap); }
+.id-aksi .fn { font-size: var(--fs-xs); color: var(--ink3); }
+
+/* pemilih prodi di rel: tautan, bukan form bersarang di dalam form simpan */
+.daftar-prodi { display: grid; gap: 6px; }
+.pilih-prodi { display: flex; justify-content: space-between; gap: 8px; padding: 7px 10px;
+  border: 1px solid var(--bd); border-radius: 6px; font-size: var(--fs-sm); color: var(--ink2); }
+.pilih-prodi span { font-size: var(--fs-xs); color: var(--ink4); }
+.pilih-prodi:hover { background: var(--bg); color: var(--ink1); }
+.pilih-prodi.aktif { border-color: var(--ind); background: var(--ind-t); color: var(--ind);
+  font-weight: 600; }
+
+/* tabel di rel samping: tanpa bungkus geser, kolom sedikit */
+.id-grid > aside .tbl td, .per-grid > aside .tbl td { padding: 6px 0; }
+.id-grid > aside .tbl td + td, .per-grid > aside .tbl td + td { padding-left: 8px; }
+
+/* ── 320–900px: satu kolom, rel turun ke bawah ───────────────────── */
+@media (max-width: 1020px) {
+  .id-grid, .per-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .fld-grid, .fld-grid.fld-2 { grid-template-columns: minmax(0, 1fr); }
+  .kons { grid-template-columns: minmax(0, 1fr); }
+  .kons-angka { white-space: normal; }
+}
+
+/* cetak: rel samping tidak perlu, blok konsekuensi tetap terbaca hitam-putih */
+@media print {
+  .id-aksi, .daftar-prodi { display: none; }
+  .kons { background: none; border-left: 2px solid #000; }
+}

@@ -16,7 +16,7 @@ import re
 import unicodedata
 
 SRC = "field-spec.json"
-OUT_SQL = "migrasi/003_tabel.sql"
+OUT_SQL = "migrasi/004_tabel.sql"
 OUT_PHP = "../web/spesifikasi/tabel.php"
 
 # Peruntukan per sheet dari docx; 38 sheet = tabel 01..38.
@@ -67,7 +67,10 @@ def main():
                 "ket": ket,
             })
         assert no not in [t["no"] for t in tabel], f"sheet {no} dobel"
-        tabel.append({"no": no, "kode": f"{no:02d}", "kriteria": krit,
+        # `kriteria` di docx hanya angka ("2"); tabel `kriteria` memakai 'K2'.
+        # Tanpa awalan 'K', join per kriteria tidak pernah cocok — ini bug nyata
+        # yang tertangkap uji kerangka (semua kriteria jadi 0).
+        tabel.append({"no": no, "kode": f"{no:02d}", "kriteria": "K" + krit,
                       "khusus": khusus, "fields": fields})
 
     tabel.sort(key=lambda t: t["no"])
@@ -87,6 +90,8 @@ def main():
            % (total, hitung["Input"], hitung["Hitung"], hitung["Master"], hitung["Tetap"]),
            "SET NAMES utf8mb4;", ""]
 
+    # `kriteria` sudah dibuat + di-seed oleh 003_dokumen.sql, jadi di sini
+    # hanya dipakai sebagai FK.
     sql.append("""CREATE TABLE tabel_dukung (
   kode          CHAR(2) NOT NULL,
   nomor         TINYINT UNSIGNED NOT NULL,
@@ -96,7 +101,10 @@ def main():
   varian        VARCHAR(20) NULL,                -- 'sarjana' | 'spesialis4' | ...
   berlaku_untuk VARCHAR(20) NOT NULL DEFAULT 'semua',
   PRIMARY KEY (kode),
-  UNIQUE KEY uq_tabel_nomor (nomor)
+  UNIQUE KEY uq_tabel_nomor (nomor),
+  -- FK ini yang membuat salah ketik kode kriteria gagal saat migrasi,
+  -- bukan jadi angka 0 yang tidak ketahuan berbulan-bulan.
+  CONSTRAINT fk_tabel_kriteria FOREIGN KEY (kriteria) REFERENCES kriteria(kode)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE spec_field (
@@ -125,8 +133,10 @@ CREATE TABLE baris_tabel (
   dibuat        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   diubah        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
-  UNIQUE KEY uq_baris (periode_id, tabel_kode, urut),
-  KEY ix_baris_prodi (prodi_id, tabel_kode),
+  -- prodi_id WAJIB ikut: dua prodi mengisi tabel yang sama pada urut yang
+  -- sama. Tanpa prodi_id di kunci, prodi kedua gagal menyimpan (1062).
+  UNIQUE KEY uq_baris (prodi_id, periode_id, tabel_kode, urut),
+  KEY ix_baris_tabel (periode_id, tabel_kode),
   CONSTRAINT fk_baris_prodi FOREIGN KEY (prodi_id) REFERENCES prodi(id),
   CONSTRAINT fk_baris_periode FOREIGN KEY (periode_id) REFERENCES periode(id),
   CONSTRAINT fk_baris_tabel FOREIGN KEY (tabel_kode) REFERENCES tabel_dukung(kode),
