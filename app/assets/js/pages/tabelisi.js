@@ -108,11 +108,33 @@ function page() {
          Belum ada baris. Klik <b>Tambah baris</b> untuk mulai mengisi.</td></tr>`
     : baris.map((b, i) => {
       const td = semua.map((f) => {
-        const v = bisa.find((x) => x.kunci === f.kunci) ? (b.nilai[f.kunci] ?? '') : '';
+        // Nilai diambil untuk SEMUA kolom, bukan hanya yang Input. Dulu baris
+        // ini menyaring lewat `bisa.find(...)`, sehingga kolom Master selalu
+        // menerima string kosong — hasil tarikan master tidak pernah tampil
+        // walau datanya sudah ada di DB.
+        const v = b.nilai[f.kunci] ?? '';
+        if (f.asal === 'Master') {
+          // Nilai dari master DITAMPILKAN, tapi tidak bisa diketik. Dulu
+          // semua kolom non-Input ditulis "—", sehingga hasil "Tarik dari
+          // master" tidak kelihatan sama sekali padahal datanya sudah masuk.
+          // Angka dari DB datang sebagai "1.0000" (DECIMAL). Menampilkannya
+          // apa adanya bikin kolom centang terlihat seperti desimal.
+          let tampil = (v === '' || v === null || v === undefined) ? '—' : String(v);
+          if (/^-?\d+\.0+$/.test(tampil)) tampil = String(parseInt(tampil, 10));
+          else if (/^-?\d+\.\d{1,}$/.test(tampil)) tampil = String(Number(tampil));
+          return `<td class="sel-master" title="dari master: ${esc(f.label)}">${esc(tampil)}</td>`;
+        }
         if (f.asal !== 'Input') {
-          // Kolom hitungan: tampilkan tanda pisah, bukan kotak kosong yang
-          // mengundang orang mengetik lalu kecewa karena tidak tersimpan.
-          return `<td class="sel-hitung" title="diisi sistem">—</td>`;
+          // Kolom hitungan: kalau nilainya sudah ada (ditarik dari master atau
+          // dihitung), TAMPILKAN. Hanya kalau benar-benar kosong pakai tanda
+          // pisah — bukan 0, karena 0 terbaca "memang nol".
+          if (v === '' || v === null || v === undefined) {
+            return `<td class="sel-hitung" title="dihitung sistem">—</td>`;
+          }
+          let tampil = String(v);
+          if (/^-?\d+\.0+$/.test(tampil)) tampil = String(parseInt(tampil, 10));
+          else if (/^-?\d+\.\d+$/.test(tampil)) tampil = String(Number(tampil));
+          return `<td class="sel-hitung sel-ada" title="dihitung sistem">${esc(tampil)}</td>`;
         }
         return `<td>${sel(f.kunci, f, i, v, dis)}</td>`;
       }).join('');
@@ -121,9 +143,16 @@ function page() {
       return `<tr data-baris="${i}">${td}<td class="r">${hapus}</td></tr>`;
     }).join('');
 
+  // Tombol tarik hanya muncul kalau tabel ini memang punya peta tarikan.
+  // Menampilkannya di semua tabel lalu menolak di server = tombol bohong.
+  const tombolTarik = (!terkunci && data.bisa_tarik)
+    ? `<button class="btn btn-ghost" data-tarik="1" title="ambil dari master dosen/lab/wahana/pustaka">Tarik dari master</button>`
+    : '';
+
   const aksi = terkunci
     ? `<span class="badge lock">terkunci</span>`
-    : `<button class="btn btn-ghost" data-tambah-baris="1">+ Tambah baris</button>
+    : `${tombolTarik}
+       <button class="btn btn-ghost" data-tambah-baris="1">+ Tambah baris</button>
        <button class="btn btn-primary" data-simpan="1">Simpan</button>`;
 
   return head(`Tabel ${kode}`,
@@ -133,6 +162,9 @@ function page() {
       `<p>Sudah dikunci verifikator. Isian tidak bisa diubah sampai dibuka.</p>`) : '')
     + (bisa.length === 0 ? callout('info', 'Tabel hitungan',
       `<p>Semua kolom tabel ini dihitung sistem dari master. Tidak ada yang perlu diketik.</p>`) : '')
+    + (data.bisa_tarik ? callout('info', 'Sebagian kolom diambil dari master',
+      `<p>Kolom bertanda — diisi otomatis dari master (dosen, laboratorium, wahana, pustaka). `
+      + `Klik <b>Tarik dari master</b> untuk mengisinya. Isian yang Anda ketik sendiri tidak akan tertimpa.</p>`) : '')
     + card(cardHead(`Isian tabel ${kode}`, `${baris.length} baris`)
       + `<div style="overflow-x:auto">
         <table class="tbl tbl-isi">
@@ -196,6 +228,7 @@ async function simpan() {
   const btn = document.querySelector('[data-simpan]');
   const payload = kumpulkan();
 
+  err.className = 'frm-err';
   const salah = periksaKelompok(payload);
   if (salah) { err.textContent = salah; return; }
 
@@ -256,6 +289,38 @@ if (typeof document !== 'undefined' && !window.__tabelisiPasang) {
         tr.dataset.baris = n;
       });
       kotor = true;
+      return;
+    }
+
+    if (e.target.closest('[data-tarik]')) {
+      const btn = e.target.closest('[data-tarik]');
+      if (kotor && !confirm('Ada perubahan belum disimpan. Tarik tetap akan menimpa kolom master. Lanjut?')) return;
+      btn.disabled = true;
+      btn.textContent = 'Menarik…';
+      const err = document.getElementById('errTabel');
+      try {
+        const r = await fetch(API(kode) + '/tarik', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin', body: JSON.stringify({ timpa: 0 }),
+        });
+        const j = await r.json();
+        if (!r.ok || j.error) { err.textContent = j.error || `Gagal (HTTP ${r.status}).`; return; }
+        kotor = false;
+        await muat();
+        // Beri tahu hasilnya: tanpa angka, operator tidak tahu apakah
+        // tarikan berhasil atau master-nya memang kosong.
+        // Pesan sukses jangan memakai kelas galat: warna merah terbaca
+        // seperti kegagalan, dan operator akan menekan tombolnya lagi.
+        const kotak = document.getElementById('errTabel');
+        kotak.className = 'frm-ok';
+        kotak.textContent =
+          `Ditarik dari master: ${j.dibuat} baris baru, ${j.diperbarui} diperbarui dari ${j.sumber_baris} data master.`;
+      } catch (_) {
+        err.textContent = 'Server tidak merespons.';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Tarik dari master';
+      }
       return;
     }
 

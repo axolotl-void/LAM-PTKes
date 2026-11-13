@@ -34,6 +34,7 @@ require_once __DIR__ . '/system/dosen.php';
 require_once __DIR__ . '/system/koleksi.php';
 require_once __DIR__ . '/system/identitas.php';
 require_once __DIR__ . '/system/kelompok.php';
+require_once __DIR__ . '/system/tarik.php';
 require_once __DIR__ . '/spesifikasi/tabel.php';
 
 /* ── util ───────────────────────────────────────────────────────── */
@@ -244,6 +245,7 @@ if ($r0 === 'tabel' && $r1 !== '') {
             'judul' => $judul,
             'status' => status_satu_tabel($kodeTabel, $p, (int) $per['id']),
             'spec' => $spec[$kodeTabel] ?? null,
+            'bisa_tarik' => in_array($kodeTabel, tabel_bisa_tarik(), true),
             'baris' => array_map(fn($b) => [
                 'id' => (int) $b['id'], 'urut' => (int) $b['urut'],
                 'dikunci' => $b['dikunci_oleh'] !== null,
@@ -291,7 +293,18 @@ if ($r0 === 'tabel' && $r1 !== '') {
                             ex('DELETE FROM sel WHERE baris_id = ? AND field_kunci = ?', [$id, $kunci]);
                             continue;
                         }
-                        $angka = is_numeric($v) ? $v : null;
+                        // Kolom identitas (NIDN, NUP, kode, nomor) harus TEKS.
+                        // Menyimpannya sebagai angka menghapus nol di depan:
+                        // "0012345678" jadi 12345678, dan NIDN itu milik orang
+                        // lain. Dicek dari label spec, bukan dari isi nilainya.
+                        $specKunci = [];
+                        foreach (spec_satu_tabel($kodeTabel) as $sf) {
+                            $specKunci[$sf['kunci']] = $sf;
+                        }
+                        $labelKunci = $specKunci[$kunci]['label'] ?? '';
+                        $identitas = (bool) preg_match('/\b(NIDN|NIDK|NUP|NIM|kode|nomor|no)\b/i', $labelKunci);
+
+                        $angka = (!$identitas && is_numeric($v)) ? $v : null;
                         ex('INSERT INTO sel (baris_id, field_kunci, nilai_angka, nilai_teks)
                             VALUES (?,?,?,?)
                             ON DUPLICATE KEY UPDATE nilai_angka=VALUES(nilai_angka),
@@ -310,6 +323,30 @@ if ($r0 === 'tabel' && $r1 !== '') {
         }
         $data = isi_tabel_api($kodeTabel, (int) $b['terisi'], $pengguna['nama'] ?? 'operator');
         json_keluar($data);
+    }
+    if ($r2 === 'tarik') {
+        // Tarik data master. `wajib('ISI')` karena ini MENULIS ke tabel —
+        // siapa pun yang boleh mengisi boleh menarik; yang tidak boleh
+        // mengisi tidak boleh juga.
+        wajib('ISI');
+        $b = input_json();
+        $p = prodi_aktif();
+        $per = $p ? periode_aktif($p) : null;
+        if (!$p || !$per) {
+            json_keluar(['error' => 'Prodi/periode belum ditetapkan.'], 409);
+        }
+        if (!in_array($kodeTabel, tabel_bisa_tarik(), true)) {
+            json_keluar(['error' => 'Tabel ' . $kodeTabel . ' tidak ditarik dari master; isi manual.'], 400);
+        }
+        $hasil = tarik_master($kodeTabel, $p, (int) $per['id'], !empty($b['timpa']));
+        if (isset($hasil['error'])) {
+            json_keluar($hasil, 400);
+        }
+        ex('INSERT INTO audit (pengguna_id, prodi_id, aksi, entitas, entitas_id, nilai_baru)
+            VALUES (?,?,?,?,?,?)',
+            [pengguna()['id'] ?? null, $p, 'tarik', 'tabel', $kodeTabel,
+             json_encode($hasil, JSON_UNESCAPED_UNICODE)]);
+        json_keluar($hasil + ['status' => status_satu_tabel($kodeTabel, $p, (int) $per['id'])]);
     }
     if ($r2 === 'kunci') {
         wajib('VERIFIKASI');
