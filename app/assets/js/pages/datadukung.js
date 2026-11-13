@@ -213,53 +213,89 @@ const ST_TXT2 = {
   terkunci: 'Terkunci', na: 'Tak berlaku', hitung: 'Otomatis',
 };
 
-/* Satu baris tabel. Struktur grid, bukan <table>: lebar kolom ditentukan
-   sekali di kepala, dan judul boleh 2 baris tanpa merusak kolom lain. */
-function barisTabel(t) {
+/* ═══ Kartu tabel ════════════════════════════════════════════════════
+ *
+ * Percobaan sebelumnya gagal karena dua hal, dan keduanya struktural:
+ *   1. Semua kartu bobotnya sama. 30 kartu "kosong" dan 8 kartu "otomatis"
+ *      tampil identik, jadi 38 kotak abu-abu tanpa titik masuk.
+ *   2. Aksi ("Isi"/"Lihat") diperlakukan sebagai teks di pojok, padahal itu
+ *      satu-satunya hal yang bisa diklik orang. Di layar lebar ia jadi pulau
+ *      sendiri jauh dari judulnya.
+ *
+ * Struktur yang dipakai sekarang:
+ *   - Kartu hanya untuk tabel yang MEMANG perlu dikerjakan (belum lengkap).
+ *     Tabel yang dihitung otomatis dipisah ke daftar ringkas — bukan
+ *     pekerjaan operator, jadi tidak boleh memakan bobot visual yang sama.
+ *   - Aksi jadi tombol penuh selebar kartu di kakinya: tujuan klik jelas,
+ *     dan tidak lagi terpisah dari judulnya.
+ *   - Kemajuan jadi deret titik per kolom isian, bukan angka "0/3" yang
+ *     harus diterjemahkan. Titik terbaca sebagai "berapa yang sudah".
+ */
+
+/* Deret titik: satu titik per kolom isian. 0/3 -> ○○○ */
+function titikKemajuan(ft, ftt) {
+  if (ftt <= 0) return '';
+  if (ftt > 12) {
+    // Tabel berkolom banyak: titik jadi tak terbaca, kembali ke angka.
+    return `<span class="kr-angka">${ft}<span>/${ftt}</span></span>`;
+  }
+  let out = '';
+  for (let i = 0; i < ftt; i++) {
+    out += `<i class="${i < ft ? 'on' : ''}"></i>`;
+  }
+  return `<span class="kr-titik" aria-hidden="true"
+            title="${ft} dari ${ftt} kolom sudah terisi">${out}</span>
+          <span class="kr-angka-sr">${ft} dari ${ftt} kolom terisi</span>`;
+}
+
+/* Kartu untuk tabel yang perlu diisi. */
+function kartuTabel(t) {
   const [no, judul, kStatis, stStatis, ftStatis, fttStatis] = t;
   const lv = liveFor(no);
   const st = lv ? lv.status : stStatis;
   const ft = lv ? lv.field_terisi : ftStatis;
   const ftt = lv ? lv.field_total : fttStatis;
+  const matriks = lv && lv.matriks;
+
+  const tautan = matriks ? `#/tabelmatriks/${no}` : `#/tabelisi/${no}`;
+  const mulai = ft === 0;
+  const label = mulai ? 'Mulai isi' : 'Lanjutkan';
+  const persen = ftt > 0 ? Math.round((ft / ftt) * 100) : 0;
+
+  return `<article class="kr kr-${esc(st)}" data-st="${esc(st)}">
+    <header class="kr-kepala">
+      <span class="kr-kode">T-${String(no).padStart(2, '0')}</span>
+      ${st === 'sebagian' ? '<span class="kr-tanda">Sedang diisi</span>' : ''}
+    </header>
+    <h3 class="kr-judul">${esc(judul)}</h3>
+    <div class="kr-kemajuan">
+      ${titikKemajuan(ft, ftt)}
+      ${persen > 0 ? `<span class="kr-persen">${persen}%</span>` : ''}
+    </div>
+    <div class="kr-bilah" aria-hidden="true"><i style="width:${persen}%"></i></div>
+    <a class="kr-aksi" href="${tautan}">${label}</a>
+  </article>`;
+}
+
+/* Baris ringkas untuk tabel yang dihitung sistem — bukan pekerjaan operator,
+   jadi tidak layak dapat kartu selebar tabel manual. */
+function barisOtomatis(t) {
+  const [no, judul, , stStatis] = t;
+  const lv = liveFor(no);
+  const st = lv ? lv.status : stStatis;
   const hanyaHitung = lv && lv.hanya_hitung;
   const matriks = lv && lv.matriks;
-  const adaHitung = lv && lv.ada_hitung;
+  const tautan = matriks ? `#/tabelmatriks/${no}`
+    : hanyaHitung ? `#/tabelhitung/${no}` : `#/tabelisi/${no}`;
+  const ket = st === 'terkunci' ? 'terkunci'
+    : st === 'lengkap' ? 'sudah terisi'
+      : 'dihitung sistem';
 
-  const bisaIsi = st !== 'terkunci' && ft < ftt && boleh('Isi');
-
-  // Aksi ditentukan bentuk tabel, bukan status saja.
-  let tautan = `#/tabelisi/${no}`;
-  let label = ft > 0 ? 'Lanjutkan' : 'Isi';
-  let utama = true;
-  if (matriks) { tautan = `#/tabelmatriks/${no}`; label = 'Lihat'; utama = false; }
-  else if (hanyaHitung || (!bisaIsi && adaHitung)) {
-    tautan = `#/tabelhitung/${no}`; label = 'Lihat'; utama = false;
-  } else if (!bisaIsi) { label = 'Lihat'; utama = false; }
-
-  // Kemajuan: angka + bilah tipis. Tanpa penyebut (0/0) -> "otomatis",
-  // bukan bilah kosong yang terbaca "belum dikerjakan".
-  const persen = ftt > 0 ? Math.round((ft / ftt) * 100) : null;
-  // Satu pembungkus untuk angka+bilah: dua elemen terpisah membuat baris
-  // punya 6 anak grid di grid 5 kolom, dan kolom aksi terdorong ke baris baru.
-  // Kolom metrik mengosongkan diri untuk tabel otomatis: status di sebelah
-  // kiri sudah menulis "Otomatis". Mengulanginya dalam huruf kecil membuat
-  // satu baris berbunyi "Otomatis … otomatis" — dua kata, satu arti.
-  const metrik = persen === null
-    ? '<div class="br-metrik-wrap"><span class="br-metrik br-metrik-auto">—</span></div>'
-    : `<div class="br-metrik-wrap">
-         <span class="br-metrik"><b>${ft}</b>/${ftt}</span>
-         <span class="br-bilah" aria-hidden="true"><i style="width:${persen}%"></i></span>
-       </div>`;
-
-  return `<div class="br" data-st="${esc(st)}">
-    <span class="br-kode">T-${String(no).padStart(2, '0')}</span>
-    <div class="br-utama">
-      <a class="br-judul" href="${tautan}">${esc(judul)}</a>
-    </div>
-    <span class="br-status">${st === 'kosong' ? '' : esc(ST_TXT2[st] || st)}</span>
-    ${metrik}
-    <a class="br-aksi${utama ? '' : ' br-aksi-sekunder'}" href="${tautan}">${label}</a>
-  </div>`;
+  return `<a class="or" href="${tautan}">
+    <span class="or-kode">T-${String(no).padStart(2, '0')}</span>
+    <span class="or-judul">${esc(judul)}</span>
+    <span class="or-ket">${ket} →</span>
+  </a>`;
 }
 
 function page(state) {
@@ -276,22 +312,19 @@ function page(state) {
   const beres = hitung.lengkap + hitung.terkunci;
   const perlu = total - beres - hitung.hitung;
 
-  // Kalimat keadaan, bukan tabel angka. Satu baris ini menggantikan tujuh
-  // sel strip: pembaca langsung tahu harus berbuat apa.
   const ringkas = perlu === 0
     ? (hitung.hitung === total
       ? 'Seluruh tabel dihitung otomatis dari master.'
       : 'Semua tabel yang perlu diisi sudah lengkap.')
     : `${perlu} dari ${total} tabel perlu diisi`
-      + (hitung.hitung ? ` · ${hitung.hitung} dihitung otomatis` : '')
-      + (beres ? ` · ${beres} selesai` : '');
+      + (hitung.hitung ? ` · ${hitung.hitung} dihitung otomatis` : '');
 
-  // Kelompokkan per kriteria.
   const KRIT_NAMA = Object.fromEntries(KRITERIA.map((k) => [k.kode, k.nama || k.kode]));
   const perKrit = {};
   TABEL_WAJIB.forEach((t) => {
     const lv = liveFor(t[0]);
-    (perKrit[t[2]] = perKrit[t[2]] || []).push({ t, st: lv ? lv.status : t[3] });
+    const st = lv ? lv.status : t[3];
+    (perKrit[t[2]] = perKrit[t[2]] || []).push({ t, st });
   });
 
   const kriteria = Object.keys(perKrit).sort().map((kode) => {
@@ -299,47 +332,54 @@ function page(state) {
     const selesai = isi.filter((x) => x.st === 'lengkap' || x.st === 'terkunci').length;
     const otomatis = isi.filter((x) => x.st === 'hitung').length;
     const sisa = isi.length - selesai - otomatis;
-    return `<section class="br-krit-bagian" data-krit="${esc(kode)}">
-      <header class="br-krit-kepala">
-        <span class="br-krit-kode">${esc(kode)}</span>
+
+    // Pekerjaan operator dipisah dari yang dihitung sistem. Kartu untuk yang
+    // perlu dikerjakan; daftar ringkas untuk yang tidak.
+    const manual = isi.filter((x) => x.st !== 'hitung');
+    const auto = isi.filter((x) => x.st === 'hitung');
+
+    return `<section class="kr-bagian" data-krit="${esc(kode)}">
+      <header class="kr-bagian-kepala">
+        <span class="kr-krit-kode">${esc(kode)}</span>
         <h2>${esc(KRIT_NAMA[kode] || '')}</h2>
-        <span class="br-krit-meta">${selesai}/${isi.length} selesai${sisa ? ` · ${sisa} perlu diisi` : ''}${otomatis ? ` · ${otomatis} otomatis` : ''}</span>
+        <span class="kr-bagian-meta">${selesai}/${isi.length} selesai${
+          sisa ? ` · <b>${sisa} perlu diisi</b>` : ' · lengkap'}</span>
       </header>
-      <div class="br-daftar">${isi.map((x) => barisTabel(x.t)).join('')}</div>
+      ${manual.length ? `<div class="kr-grid">${manual.map((x) => kartuTabel(x.t)).join('')}</div>` : ''}
+      ${auto.length ? `<div class="kr-auto">
+        <div class="kr-auto-lab">Dihitung sistem — tidak perlu diisi</div>
+        ${auto.map((x) => barisOtomatis(x.t)).join('')}
+      </div>` : ''}
     </section>`;
   }).join('');
 
   return head('Data Dukung',
     `${total} tabel wajib · ${TABEL_NA.length} tidak berlaku untuk jenjang ini`)
-    // Satu baris keadaan + filter dalam satu baris kendali.
-    + `<div class="br-kendali">
-        <p class="br-ringkas">${esc(ringkas)}</p>
-        <div class="br-saring" role="group" aria-label="Saring menurut status">
-          ${chipSaring('Semua', '', total, true)}
-          ${hitung.lengkap ? chipSaring('Lengkap', 'ok', hitung.lengkap) : ''}
-          ${hitung.sebagian ? chipSaring('Sebagian', 'warn', hitung.sebagian) : ''}
-          ${hitung.kosong ? chipSaring('Kosong', '', hitung.kosong) : ''}
-          ${hitung.hitung ? chipSaring('Otomatis', '', hitung.hitung) : ''}
-          ${hitung.terkunci ? chipSaring('Terkunci', '', hitung.terkunci) : ''}
+    + `<div class="kr-kendali">
+        <p class="kr-ringkas">${esc(ringkas)}</p>
+        <div class="kr-saring" role="group" aria-label="Saring menurut status">
+          ${chipSaring('Semua', total, true)}
+          ${hitung.kosong ? chipSaring('Belum diisi', hitung.kosong) : ''}
+          ${hitung.sebagian ? chipSaring('Sedang diisi', hitung.sebagian) : ''}
+          ${hitung.lengkap ? chipSaring('Lengkap', hitung.lengkap) : ''}
+          ${hitung.terkunci ? chipSaring('Terkunci', hitung.terkunci) : ''}
+          ${hitung.hitung ? chipSaring('Otomatis', hitung.hitung) : ''}
+          ${TABEL_NA.length ? chipSaring('Tak berlaku', TABEL_NA.length) : ''}
         </div>
       </div>`
     + kriteria
-    // Tabel tidak berlaku: dilipat, bukan dipamerkan. Bukan pekerjaan operator.
-    + (TABEL_NA.length ? `<details class="br-na">
+    + (TABEL_NA.length ? `<details class="kr-na">
         <summary>${TABEL_NA.length} tabel tidak berlaku untuk jenjang ini</summary>
-        <div class="br-daftar">${TABEL_NA.map(([no, judul, k]) => `<div class="br br-na-baris">
-          <span class="br-kode">T-${String(no).padStart(2, '0')}</span>
-          <div class="br-utama"><span class="br-judul-static">${esc(judul)}</span>
-            <span class="br-krit">${esc(k)}</span></div>
-          <span class="br-status">Tak berlaku</span>
-        </div>`).join('')}</div>
+        <div class="kr-auto">${TABEL_NA.map(([no, judul]) => `<span class="or or-na">
+          <span class="or-kode">T-${String(no).padStart(2, '0')}</span>
+          <span class="or-judul">${esc(judul)}</span>
+          <span class="or-ket">tidak berlaku</span>
+        </span>`).join('')}</div>
       </details>` : '');
 }
 
-/* Chip saring. Hanya status yang punya isi yang ditampilkan — chip "Lengkap 0"
-   adalah tombol untuk menyaring ke nol hasil. */
-function chipSaring(label, kind, n, aktif = false) {
-  return `<button type="button" class="br-chip${kind ? ' ' + kind : ''}${aktif ? ' on' : ''}"
+function chipSaring(label, n, aktif = false) {
+  return `<button type="button" class="kr-chip${aktif ? ' on' : ''}"
     data-saring="${esc(label.toLowerCase())}" aria-pressed="${aktif}">
     ${esc(label)}<b>${n}</b></button>`;
 }
@@ -357,7 +397,7 @@ if (typeof document !== 'undefined' && !window.__ddSaring) {
     if (!tombol) return;
 
     const saring = tombol.dataset.saring;
-    const semua = document.querySelectorAll('.br-krit-bagian');
+    const semua = document.querySelectorAll('.kr-bagian');
     if (!semua.length) return;
 
     // Penanda pilihan
@@ -369,20 +409,34 @@ if (typeof document !== 'undefined' && !window.__ddSaring) {
 
     // Label chip berbahasa Indonesia, data-st memakai kunci internal.
     // Tanpa peta ini "Otomatis" tidak pernah cocok dengan data-st="hitung".
-    const PETA = { otomatis: 'hitung', 'tak berlaku': 'na' };
+    const PETA = { otomatis: 'hitung', 'belum diisi': 'kosong', 'sedang diisi': 'sebagian' };
     const kunci = PETA[saring] || saring;
 
     let tampil = 0;
-    document.querySelectorAll('.br[data-st]').forEach((k) => {
+    document.querySelectorAll('.kr[data-st]').forEach((k) => {
       const cocok = saring === 'semua' || k.dataset.st === kunci;
       k.hidden = !cocok;
       if (cocok) tampil++;
     });
 
+    // Baris otomatis juga disaring. Tanpa ini, memilih "Otomatis" menyembunyikan
+    // SEMUA kartu tapi 8 baris otomatis tetap tampil — hasilnya 0 kartu di
+    // layar kosong padahal chip bilang 8.
+    const autoTampil = ['semua', 'otomatis'].includes(saring);
+    document.querySelectorAll('.or').forEach((o) => { o.hidden = !autoTampil; });
+    document.querySelectorAll('.kr-auto').forEach((w) => {
+      w.hidden = !autoTampil || ![...w.querySelectorAll('.or')].some((o) => !o.hidden);
+    });
+    // Label "DIHITUNG SISTEM" ikut disembunyikan bersama isinya.
+    document.querySelectorAll('.kr-auto-lab').forEach((l) => {
+      l.hidden = !autoTampil;
+    });
+    if (autoTampil) tampil += document.querySelectorAll('.or').length;
+
     // Bagian kriteria yang seluruh kartunya tersaring disembunyikan —
     // judul kosong dengan "0 dari 7 selesai" di atasnya hanya membingungkan.
     semua.forEach((s) => {
-      const ada = [...s.querySelectorAll('.br[data-st]')].some((k) => !k.hidden);
+      const ada = [...s.querySelectorAll('.kr[data-st], .or')].some((k) => !k.hidden);
       s.hidden = !ada;
     });
 
