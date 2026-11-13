@@ -2,7 +2,7 @@
 declare(strict_types=1);
 /** Spesifikasi 38 tabel — DIBANGKITKAN dari db/gen_skema_tabel.py.
  *  Jangan disunting tangan: ubah field-spec.json lalu jalankan ulang.
- *  Angka: 38 tabel, 265 field. */
+ *  Angka: 38 tabel, 261 field. */
 return [
     '01' => [
         'nomor' => 1, 'kriteria' => 'K2', 'khusus' => false,
@@ -170,6 +170,7 @@ return [
             ['urut'=>5,'label'=>'Rencana tindak lanjut','kunci'=>'rencana_tindak_lanjut','tipe'=>'teks panjang','asal'=>'Input','kelompok'=>'','pilih'=>'banyak','ket'=>'-'],
         ],
     ],
+    // Tabel 15: bentuk matriks, lihat migrasi/009_tabel15.sql
     '15' => [
         'nomor' => 15, 'kriteria' => 'K5', 'khusus' => false,
         'fields' => [

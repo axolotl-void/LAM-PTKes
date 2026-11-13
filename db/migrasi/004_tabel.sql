@@ -1,6 +1,6 @@
 -- LAM-PTKes — 003: 38 tabel data dukung (dibangkitkan, jangan disunting)
 -- Sumber: db/field-spec.json + db/gen_skema_tabel.py
--- Angka: 38 tabel, 265 field (Input 125 / Hitung 68 / Master 71 / Tetap 1)
+-- Angka: 38 tabel, 261 field (Input 125 / Hitung 68 / Master 71 / Tetap 1)
 SET NAMES utf8mb4;
 
 CREATE TABLE tabel_dukung (
@@ -183,11 +183,8 @@ INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,ket
 INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES ('14',3,'Sangat baik / Baik / Cukup / Kurang','sangat_baik_baik_cukup_kurang','angka','Hitung','','banyak','Dari survei pengguna');
 INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES ('14',4,'Persentase','persentase','persen','Hitung','','banyak','-');
 INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES ('14',5,'Rencana tindak lanjut','rencana_tindak_lanjut','teks panjang','Input','','banyak','-');
+-- Tabel 15: baris tabel dibuat di sini, field-nya di migrasi/009_tabel15.sql (bentuk matriks).
 INSERT INTO tabel_dukung (kode,nomor,judul,kriteria,khusus_profesi) VALUES ('15',15,'15. Tabel 15','K5',0);
-INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES ('15',1,'No','no','Input','Input','','banyak','-');
-INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES ('15',2,'Hal','hal','Teks','Master','','banyak','Jabatan fungsional dan pendidikan');
-INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES ('15',3,'Jumlah dosen per PS-1 ... PS-n','jumlah_dosen_per_ps_1_ps_n','angka','Hitung','','banyak','Satu kolom per prodi, mengikuti jumlah prodi aktif');
-INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES ('15',4,'Total di UPPS','total_di_upps','angka','Hitung','','banyak','Jumlah semua kolom prodi');
 INSERT INTO tabel_dukung (kode,nomor,judul,kriteria,khusus_profesi) VALUES ('16',16,'16. Tabel 16','K5',0);
 INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES ('16',1,'No','no','Teks','Input','','banyak','-');
 INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES ('16',2,'Nama Dosen Tetap','nama_dosen_tetap','relasi','Master','','banyak','Tanda * bila sudah punya sertifikat pendidik');

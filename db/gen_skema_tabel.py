@@ -19,6 +19,16 @@ import unicodedata
 sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from aturan_kelompok import pecah_label  # noqa: E402
 
+# ── Tabel 15: bentuknya diganti total ────────────────────────────────────
+# Instrumen aslinya matriks: 5 jabatan fungsional + 3 pendidikan tertinggi
+# x satu kolom per prodi + Total UPPS. Generator membacanya dari field-spec
+# sebagai 4 field datar, dan itu SALAH BENTUK.
+# Bentuk benarnya ditulis tangan di migrasi/009_tabel15.sql (varian
+# 'matriks'). Kalau tabel ini dibangkitkan ulang dari field-spec, bentuk
+# salah itu kembali dan halaman matriks kehilangan spec-nya.
+# Perbaiki field-spec-nya dulu kalau suatu saat ingin dibangkitkan lagi.
+BARIS_LEWATI = {"15"}
+
 SRC = "field-spec.json"
 OUT_SQL = "migrasi/004_tabel.sql"
 OUT_PHP = "../web/spesifikasi/tabel.php"
@@ -86,7 +96,7 @@ def main():
     tabel.sort(key=lambda t: t["no"])
     assert [t["no"] for t in tabel] == list(range(1, 39)), "harus 38 tabel 1..38"
 
-    total = sum(len(t["fields"]) for t in tabel)
+    total = sum(len(t["fields"]) for t in tabel if t["kode"] not in BARIS_LEWATI)
     hitung = {"Input": 0, "Hitung": 0, "Master": 0, "Tetap": 0}
     for t in tabel:
         for f in t["fields"]:
@@ -174,8 +184,16 @@ CREATE TABLE sel (
 """)
 
     for t in tabel:
+        # Baris tabel_dukung HARUS tetap dibuat: spec_field punya FK ke sini,
+        # dan migrasi/009 menambah field-nya belakangan. Yang dilewati hanya
+        # spec_field-nya (bentuknya salah di field-spec).
+        if t["kode"] in BARIS_LEWATI:
+            sql.append("-- Tabel %s: baris tabel dibuat di sini, field-nya di "
+                       "migrasi/009_tabel15.sql (bentuk matriks)." % t["kode"])
         sql.append("INSERT INTO tabel_dukung (kode,nomor,judul,kriteria,khusus_profesi) VALUES "
                    "('%s',%d,'%s','%s',%d);" % (t["kode"], t["no"], esc(t["kode"] + ". Tabel " + t["kode"]), t["kriteria"], 1 if t["khusus"] else 0))
+        if t["kode"] in BARIS_LEWATI:
+            continue
         for f in t["fields"]:
             sql.append("INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES "
                        "('%s',%d,'%s','%s','%s','%s','%s','%s','%s');"
@@ -198,6 +216,11 @@ CREATE TABLE sel (
            " *  Angka: %d tabel, %d field. */" % (len(tabel), total),
            "return ["]
     for t in tabel:
+        if t["kode"] in BARIS_LEWATI:
+            # Bentuk tabel ini ditulis tangan di migrasi/009. PHP tetap butuh
+            # entrinya supaya 38 tabel lengkap; field-nya diberi catatan.
+            php.append("    // Tabel %s: bentuk matriks, lihat migrasi/009_tabel15.sql"
+                       % t["kode"])
         php.append("    '%s' => [" % t["kode"])
         php.append("        'nomor' => %d, 'kriteria' => '%s', 'khusus' => %s,"
                    % (t["no"], t["kriteria"], "true" if t["khusus"] else "false"))

@@ -35,6 +35,7 @@ require_once __DIR__ . '/system/koleksi.php';
 require_once __DIR__ . '/system/identitas.php';
 require_once __DIR__ . '/system/kelompok.php';
 require_once __DIR__ . '/system/tarik.php';
+require_once __DIR__ . '/system/tabel15.php';
 require_once __DIR__ . '/spesifikasi/tabel.php';
 
 /* ── util ───────────────────────────────────────────────────────── */
@@ -188,6 +189,7 @@ if ($r0 === 'tabel' && $r1 === '') {
             'berlaku' => $t['berlaku'] ? 1 : 0,
             'dikunci_oleh' => $t['dikunci'] ? 'verifikator' : null,
             'hanya_hitung' => $t['hanya_hitung'] ?? false,
+            'matriks' => in_array($t['kode'], tabel_matriks(), true),
         ];
     }
     json_keluar($out);
@@ -246,6 +248,7 @@ if ($r0 === 'tabel' && $r1 !== '') {
             'status' => status_satu_tabel($kodeTabel, $p, (int) $per['id']),
             'spec' => $spec[$kodeTabel] ?? null,
             'bisa_tarik' => in_array($kodeTabel, tabel_bisa_tarik(), true),
+            'matriks' => in_array($kodeTabel, tabel_matriks(), true),
             'baris' => array_map(fn($b) => [
                 'id' => (int) $b['id'], 'urut' => (int) $b['urut'],
                 'dikunci' => $b['dikunci_oleh'] !== null,
@@ -323,6 +326,16 @@ if ($r0 === 'tabel' && $r1 !== '') {
         }
         $data = isi_tabel_api($kodeTabel, (int) $b['terisi'], $pengguna['nama'] ?? 'operator');
         json_keluar($data);
+    }
+    if ($r2 === 'matriks') {
+        // Tabel 15 seluruhnya dihitung dari master dosen; tidak ada isian.
+        // Dihitung saat diminta, bukan disimpan — kalau disimpan, angkanya
+        // basi setiap kali master dosen berubah.
+        wajib_masuk();
+        if (in_array($kodeTabel, tabel_matriks(), true)) {
+            json_keluar(t15_hitung() + ['boleh_ubah' => boleh('ISI')]);
+        }
+        json_keluar(['error' => 'Tabel ' . $kodeTabel . ' bukan tabel matriks.'], 404);
     }
     if ($r2 === 'tarik') {
         // Tarik data master. `wajib('ISI')` karena ini MENULIS ke tabel —

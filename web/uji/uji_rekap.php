@@ -48,8 +48,11 @@ cek('tidak ada yang lengkap tanpa baris',
 $kodeHitung = array_values(array_map(fn($t) => $t['kode'],
     array_filter($semua, fn($t) => $t['status'] === 'hitung')));
 sort($kodeHitung);
-cek('tepat 6 tabel berstatus hitung', count($kodeHitung) === 6, implode(',', $kodeHitung));
-cek('tabel hitung = 03,04,05,06,09,31', $kodeHitung === ['03', '04', '05', '06', '09', '31'],
+cek('tepat 7 tabel berstatus hitung', count($kodeHitung) === 7, implode(',', $kodeHitung));
+// 15 ikut masuk: bentuknya matriks hitung dari master dosen, tidak ada isian.
+// Daftar ini SENGAJA eksplisit — kalau ada tabel lain jadi hitung tanpa
+// disengaja, itu berarti field Input-nya hilang dan harus ketahuan.
+cek('tabel hitung = 03,04,05,06,09,15,31', $kodeHitung === ['03', '04', '05', '06', '09', '15', '31'],
     implode(',', $kodeHitung));
 
 // Bukan sekadar angka cocok: tiap tabel 'hitung' memang 0 field Input di DB.

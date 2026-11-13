@@ -133,7 +133,7 @@ foreach (q('SELECT kode FROM tabel_dukung') as $t) {
         $bisa++;
     }
 }
-cek('32 tabel punya kolom isian', $bisa === 32, 'dapat ' . $bisa);
+cek('31 tabel punya kolom isian', $bisa === 31, 'dapat ' . $bisa);
 
 echo "\n── simpan lewat jalur produksi ──\n";
 

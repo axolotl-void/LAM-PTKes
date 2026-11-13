@@ -100,12 +100,17 @@ function rowWajib(t) {
     ? `<button class="lnk dd-buka" data-buka="${no}">Buka kunci →</button>` : '';
   // Tabel berstatus hitung tidak punya kolom isian sama sekali; tombol "Isi"
   // di situ hanya mengecewakan. Arahkan ke halaman tabel supaya bisa dilihat.
+  // Tabel matriks punya halamannya sendiri: bentuknya bukan daftar baris
+  // yang bisa ditambah, jadi "Isi" di sini akan menyesatkan.
+  const matriks = lv && lv.matriks;
   const hanyaHitung = lv && lv.hanya_hitung;
-  const aksi = st === 'terkunci'
-    ? `<span class="lnk muted">Terkunci</span>${bukaBtn}`
-    : (bisaIsi && !hanyaHitung)
-      ? `<a class="lnk dd-isi" href="#/tabelisi/${no}">Isi →</a>`
-      : `<a class="lnk" href="#/tabelisi/${no}">Lihat →</a>`;
+  const aksi = matriks
+    ? `<a class="lnk" href="#/tabelmatriks/${no}">Lihat →</a>`
+    : st === 'terkunci'
+      ? `<span class="lnk muted">Terkunci</span>${bukaBtn}`
+      : (bisaIsi && !hanyaHitung)
+        ? `<a class="lnk dd-isi" href="#/tabelisi/${no}">Isi →</a>`
+        : `<a class="lnk" href="#/tabelisi/${no}">Lihat →</a>`;
   const aksiFinal = `${aksi}${kunciBtn}`;
 
 

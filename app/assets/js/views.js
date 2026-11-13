@@ -33,6 +33,7 @@ import * as m_datadukung from './pages/datadukung.js';
 import * as m_dokumen from './pages/dokumen.js';
 import * as m_konsistensi from './pages/konsistensi.js';
 import * as m_tabelisi from './pages/tabelisi.js';
+import * as m_tabelmatriks from './pages/tabelmatriks.js';
 
 /* Label status: sekarang di pagekit.js (satu definisi). views.js hanya
    meneruskan supaya pemanggil lama tetap jalan. */
@@ -44,6 +45,7 @@ const MODS = {
   // Halaman isian satu tabel. Tidak muncul di sidebar (tidak ada di NAV),
   // dibuka dari tombol "Isi" di daftar Data Dukung.
   tabelisi: m_tabelisi,
+  tabelmatriks: m_tabelmatriks,
 };
 const PAGES = Object.fromEntries(Object.entries(MODS).map(([k, m]) => [k, m.default]));
 

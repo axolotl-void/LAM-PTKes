@@ -20,6 +20,7 @@ const page = () => {
   // dikenali, kalau tidak router jatuh ke dashboard dan orang kehilangan
   // pekerjaannya di tengah pengisian.
   if (h.startsWith('tabelisi')) return 'tabelisi';
+  if (h.startsWith('tabelmatriks')) return 'tabelmatriks';
   return PAGES.has(h) ? h : 'dashboard';
 };
 
@@ -118,6 +119,7 @@ const pemuat = {
   uji: () => import('./pages/uji.js').then((m) => m.muat?.()),
   survei: () => import('./pages/survei.js').then((m) => m.muat?.()),
   tabelisi: () => import('./pages/tabelisi.js').then((m) => m.muat?.()),
+  tabelmatriks: () => import('./pages/tabelmatriks.js').then((m) => m.muat?.()),
 };
 function muatHalaman() {
   const p = page();

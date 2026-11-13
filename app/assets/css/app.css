@@ -993,3 +993,11 @@ body.belum-masuk .sb-toggle { display: none; }
 
 /* Pesan hasil tindakan: sukses jangan memakai warna galat. */
 .frm-ok { color: var(--ok); font-size: var(--fs-sm); margin-top: 10px; }
+
+/* Matriks Tabel 15: dua blok (jabatan / pendidikan) dengan baris judul. */
+.mat-baris .mat-blok td {
+  background: var(--dv); font-size: var(--fs-xs);
+  text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink2);
+}
+.mat-baris .mat-total td { border-top: 2px solid var(--bd); font-weight: 700; }
+.mat-baris th.r, .mat-baris td.r { text-align: right; white-space: nowrap; }
