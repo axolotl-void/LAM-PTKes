@@ -960,3 +960,12 @@ body.belum-masuk .sb-toggle { display: none; }
 @media (max-width: 640px) {
   .panel-isi { width: 100%; }
 }
+
+/* Kolom aksi tabel: beri jarak antar-tombol supaya tidak menempel. */
+.aksi-sel { white-space: nowrap; }
+.aksi-sel .lnk + .lnk { margin-left: 12px; }
+
+/* Tabel koleksi: kolom angka yang rata kanan terlihat "di tengah" kalau tabel
+   selebar kartu. Beri batas lebar supaya kolom angka memang sempit. */
+.tbl td.r, .tbl th.r { width: 1%; white-space: nowrap; }
+.tbl td:not(.r):not(.aksi-sel) { max-width: 340px; }

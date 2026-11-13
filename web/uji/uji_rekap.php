@@ -29,8 +29,11 @@ $r = rekap_ringkas($prodi, $perId);
 cek('total 38 tabel', $r['total'] === 38, "dapat {$r['total']}");
 cek('semua wajib (punya tahap profesi)', $r['wajib'] === 38, "dapat {$r['wajib']}");
 cek('0 selesai di awal', $r['selesai'] === 0, "dapat {$r['selesai']}");
-cek('angka tutup: lengkap+terkunci+sebagian+kosong = wajib',
-    $r['lengkap'] + $r['terkunci'] + $r['sebagian'] + $r['kosong'] === $r['wajib'], json_encode($r));
+// Status ke-6: 'hitung' untuk tabel yang SELURUH field-nya dihitung sistem
+// (0 field Input). Operator tidak punya pekerjaan mengisi tabel itu, jadi
+// menyebutnya 'kosong' = menyalahkan orang atas pekerjaan yang tidak ada.
+cek('angka tutup: lengkap+terkunci+sebagian+kosong+hitung = wajib',
+    $r['lengkap'] + $r['terkunci'] + $r['sebagian'] + $r['kosong'] + $r['hitung'] === $r['wajib'], json_encode($r));
 cek('selesai + belum = wajib', $r['selesai'] + $r['belum'] === $r['wajib']);
 
 // Semua tabel kosong -> status kosong, bukan "lengkap" karena field_total 0
@@ -38,6 +41,24 @@ $semua = rekap_semua_tabel($prodi, $perId);
 cek('38 baris rekap', count($semua) === 38);
 cek('tidak ada yang lengkap tanpa baris',
     count(array_filter($semua, fn($t) => $t['status'] === 'lengkap')) === 0);
+
+// Klasifikasi 'hitung' dikunci: tepat 6 tabel. Kalau daftar ini berubah, ada
+// field Input yang hilang atau tabel baru yang seluruhnya jadi Hitung/Master —
+// harus ketahuan, bukan lolos diam-diam.
+$kodeHitung = array_values(array_map(fn($t) => $t['kode'],
+    array_filter($semua, fn($t) => $t['status'] === 'hitung')));
+sort($kodeHitung);
+cek('tepat 6 tabel berstatus hitung', count($kodeHitung) === 6, implode(',', $kodeHitung));
+cek('tabel hitung = 03,04,05,06,09,31', $kodeHitung === ['03', '04', '05', '06', '09', '31'],
+    implode(',', $kodeHitung));
+
+// Bukan sekadar angka cocok: tiap tabel 'hitung' memang 0 field Input di DB.
+$tanpaInput = [];
+foreach ($kodeHitung as $kode) {
+    $n = (int) q1("SELECT COUNT(*) n FROM spec_field WHERE tabel_kode = ? AND asal = 'Input'", [$kode])['n'];
+    if ($n !== 0) { $tanpaInput[] = "$kode=$n"; }
+}
+cek('setiap tabel hitung punya 0 field Input di DB', $tanpaInput === [], implode(',', $tanpaInput));
 
 // Tabel dengan asal Input hanya 109 dari 243 -> total per tabel tidak boleh 243
 $t1 = q1("SELECT COUNT(*) n FROM spec_field WHERE tabel_kode = '01' AND asal = 'Input'");

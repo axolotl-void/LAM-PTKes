@@ -31,6 +31,8 @@ require_once __DIR__ . '/system/rekap.php';
 require_once __DIR__ . '/system/data.php';
 require_once __DIR__ . '/system/kerjasama.php';
 require_once __DIR__ . '/system/dosen.php';
+require_once __DIR__ . '/system/koleksi.php';
+require_once __DIR__ . '/system/identitas.php';
 require_once __DIR__ . '/spesifikasi/tabel.php';
 
 /* ── util ───────────────────────────────────────────────────────── */
@@ -335,6 +337,109 @@ if ($r0 === 'kerjasama') {
         $b = input_json();
         $id = (int) ($b['id'] ?? $r1);
         json_keluar(mitra_hapus($id));
+    }
+    json_keluar(['error' => 'metode tidak didukung'], 405);
+}
+
+/* ── identitas / periode / keuangan ─────────────────────────────── */
+if ($r0 === 'identitas') {
+    wajib_masuk();
+    if ($metode === 'GET') {
+        json_keluar(identitas_baca() + ['boleh_ubah' => boleh('ISI')]);
+    }
+    wajib('ISI');
+    json_keluar(identitas_simpan(input_json()));
+}
+
+if ($r0 === 'periode') {
+    wajib_masuk();
+    if ($metode === 'GET') {
+        json_keluar([
+            'baris' => periode_daftar(),
+            'prodi' => q('SELECT id, nama_ps FROM prodi ORDER BY id'),
+            'boleh_ubah' => boleh('ISI'),
+        ]);
+    }
+    wajib('ISI');
+    $b = input_json();
+    if ($metode === 'POST') {
+        $hasil = periode_simpan($b, (int) ($b['id'] ?? 0));
+        json_keluar($hasil, isset($hasil['error']) ? 400 : 200);
+    }
+    if ($metode === 'DELETE') {
+        json_keluar(periode_hapus((int) ($b['id'] ?? $r1)));
+    }
+    json_keluar(['error' => 'metode tidak didukung'], 405);
+}
+
+if ($r0 === 'keuangan') {
+    wajib_masuk();
+    if ($metode === 'GET') {
+        $pid = isset($_GET['prodi']) ? (int) $_GET['prodi'] : null;
+        json_keluar(keuangan_baca($pid) + [
+            'prodi' => q('SELECT id, nama_ps FROM prodi WHERE aktif = 1 ORDER BY id'),
+            'boleh_ubah' => boleh('ISI'),
+        ]);
+    }
+    wajib('ISI');
+    $b = input_json();
+    $jenis = ($b['jenis_baris'] ?? $r1) === 'guna' ? 'guna' : 'terima';
+    if ($metode === 'POST') {
+        $hasil = keuangan_simpan($b, $jenis);
+        json_keluar($hasil, isset($hasil['error']) ? 400 : 200);
+    }
+    if ($metode === 'DELETE') {
+        json_keluar(keuangan_hapus($jenis, (int) ($b['id'] ?? 0)));
+    }
+    json_keluar(['error' => 'metode tidak didukung'], 405);
+}
+
+/* ── koleksi generik: mahasiswa, mata_kuliah, laboratorium, pustaka,
+      uji_kompetensi, survei, tracer, stase ────────────────────────── */
+if (koleksi_ada($r0)) {
+    wajib_masuk();
+
+    if ($metode === 'GET') {
+        $daftar = koleksi_daftar($r0, ['cari' => $_GET['cari'] ?? '', 'prodi_id' => $_GET['prodi'] ?? '']);
+        $field = [];
+        foreach (koleksi_field($r0) as $kol => $f) {
+            $field[$kol] = [
+                'label' => $f['label'] ?? $kol,
+                'jenis' => $f['jenis'] ?? 'teks',
+                'wajib' => !empty($f['wajib']),
+                'maks' => $f['maks'] ?? null,
+                'min' => $f['min'] ?? null,
+                'opsi' => $f['opsi'] ?? null,
+                'opsi_teks' => $f['opsi_teks'] ?? null,
+                'sumber' => $f['sumber'] ?? null,
+                'pilihan' => isset($f['sumber']) ? koleksi_pilihan($f['sumber']) : null,
+                'bawaan' => $f['bawaan'] ?? null,
+            ];
+        }
+        $def = koleksi_def()[$r0];
+        json_keluar([
+            'baris' => $daftar,
+            'field' => $field,
+            'judul' => $def['judul'],
+            'kode' => $def['kode'],
+            'kolom' => $def['kolom'],
+            'keterangan' => $def['keterangan'] ?? '',
+            'prodi' => q('SELECT id, nama_ps FROM prodi WHERE aktif = 1 ORDER BY id'),
+            'boleh_ubah' => boleh('ISI'),
+        ]);
+    }
+
+    if ($metode === 'POST') {
+        wajib('ISI');
+        $b = input_json();
+        $hasil = koleksi_simpan($r0, $b, (int) ($b['id'] ?? 0));
+        json_keluar($hasil, isset($hasil['error']) ? 400 : 200);
+    }
+
+    if ($metode === 'DELETE') {
+        wajib('ISI');
+        $b = input_json();
+        json_keluar(koleksi_hapus($r0, (int) ($b['id'] ?? $r1)));
     }
     json_keluar(['error' => 'metode tidak didukung'], 405);
 }

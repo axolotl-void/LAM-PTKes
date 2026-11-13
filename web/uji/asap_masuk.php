@@ -29,7 +29,10 @@ cek('koneksi database', (bool) qv('SELECT 1'), 'db.php / config.php');
 cek('2 prodi ter-seed', (int) qv('SELECT COUNT(*) FROM prodi') === 2);
 cek('6 akun ter-seed', (int) qv('SELECT COUNT(*) FROM pengguna') === 6);
 cek('38 tabel dukung', (int) qv('SELECT COUNT(*) FROM tabel_dukung') === 38);
-cek('243 field spec', (int) qv('SELECT COUNT(*) FROM spec_field') === 243);
+// Lantai 243 = jumlah field sebelum label bertanda-√ dipecah jadi beberapa kolom (kini 265).
+// Yang dijaga bukan angkanya, tapi bahwa regenerasi skema tidak menghilangkan field.
+$dbField = (int) qv('SELECT COUNT(*) FROM spec_field');
+cek('field spec tidak menyusut', $dbField >= 243, "dapat $dbField");
 cek('78 dokumen pendukung', (int) qv('SELECT COUNT(*) FROM dokumen_spec') === 78);
 cek('10 aturan konsistensi', (int) qv('SELECT COUNT(*) FROM konsistensi_aturan') === 10);
 cek('matriks izin 24 baris', (int) qv('SELECT COUNT(*) FROM izin') === 24);
@@ -64,15 +67,22 @@ cek('label TS-0 dari 2025', label_ts(2025, 0) === 'TS-0 (2025/2026)');
 $spec = require __DIR__ . '/../spesifikasi/tabel.php';
 cek('spec PHP 38 tabel', count($spec) === 38);
 $total = 0;
+$bedaTabel = 0;
 foreach ($spec as $kode => $t) {
     $total += count($t['fields']);
     $n = (int) qv('SELECT COUNT(*) FROM spec_field WHERE tabel_kode = ?', [$kode]);
     if ($n !== count($t['fields'])) {
         cek("spec $kode sama dengan DB", false, "DB $n vs PHP " . count($t['fields']));
+        $bedaTabel++;
     }
 }
-cek('spec PHP 243 field', $total === 243, "dapat $total");
-cek('spec PHP = spec DB', true);
+// Dulu baris ini cek('spec PHP = spec DB', true) — selalu lulus, jadi tidak menjaga apa pun.
+// Sekarang benar-benar dibandingkan: kalau gen_skema_tabel.py dan migrasi tidak sinkron,
+// total PHP dan total DB berbeda dan uji ini gagal.
+cek('spec PHP = spec DB', $bedaTabel === 0 && $total === $dbField, "PHP $total vs DB $dbField");
+// Lantai 243, bukan angka mati: 243 adalah jumlah sebelum label bertanda-√ dipecah jadi
+// beberapa kolom (kini 265). Turun di bawahnya berarti ada field hilang saat regenerasi.
+cek('spec PHP tidak menyusut', $total >= 243, "dapat $total field");
 
 // 7. tabel khusus profesi tepat 6
 $khusus = array_filter($spec, fn($t) => $t['khusus']);

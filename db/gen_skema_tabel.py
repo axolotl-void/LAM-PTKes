@@ -13,7 +13,11 @@ Label field di docx bukan nama kolom — ada spasi, tanda kurung, garis miring.
 """
 import json
 import re
+import sys
 import unicodedata
+
+sys.path.insert(0, __file__.rsplit("/", 1)[0])
+from aturan_kelompok import pecah_label  # noqa: E402
 
 SRC = "field-spec.json"
 OUT_SQL = "migrasi/004_tabel.sql"
@@ -52,20 +56,26 @@ def main():
         khusus = "Khusus Profesi" in h["judul"]
         fields = []
         dipakai = set()
-        for urut, r in enumerate(h["rows"], start=1):
+        for r in h["rows"]:
             label, tipe, asal = r[0], r[1], r[2]
             ket = r[3] if len(r) > 3 else ""
-            kunci = slug(label)
-            dasar, n = kunci, 2
-            while kunci in dipakai:                     # label kembar dalam satu tabel
-                kunci = f"{dasar}_{n}"
-                n += 1
-            dipakai.add(kunci)
-            fields.append({
-                "urut": urut, "label": label, "kunci": kunci, "tipe": tipe,
-                "asal": asal if asal in ("Input", "Hitung", "Master") else "Tetap",
-                "ket": ket,
-            })
+            # Satu label instrumen bisa menaungi beberapa kolom (Tabel 22:
+            # "Tahun Penelitian" di atas TS-2 | TS-1 | TS). Dipecah dulu supaya
+            # tiap kolom punya baris sendiri — tanpa itu kolomnya tidak bisa
+            # dibedakan dan aturan "pilih satu" tidak bisa diterapkan.
+            for label_final, kel, pilih in pecah_label(f"{no:02d}", label):
+                urut = len(fields) + 1
+                kunci = slug(label_final)
+                dasar, n = kunci, 2
+                while kunci in dipakai:                 # label kembar dalam satu tabel
+                    kunci = f"{dasar}_{n}"
+                    n += 1
+                dipakai.add(kunci)
+                fields.append({
+                    "urut": urut, "label": label_final, "kunci": kunci, "tipe": tipe,
+                    "asal": asal if asal in ("Input", "Hitung", "Master") else "Tetap",
+                    "ket": ket, "kelompok": kel, "pilih": pilih,
+                })
         assert no not in [t["no"] for t in tabel], f"sheet {no} dobel"
         # `kriteria` di docx hanya angka ("2"); tabel `kriteria` memakai 'K2'.
         # Tanpa awalan 'K', join per kriteria tidak pernah cocok — ini bug nyata
@@ -114,6 +124,11 @@ CREATE TABLE spec_field (
   kunci         VARCHAR(60) NOT NULL,
   tipe          VARCHAR(40) NOT NULL,
   asal          ENUM('Input','Hitung','Master','Tetap') NOT NULL,
+  -- Field bertanda √ dikelompokkan: `pilih`='satu' berarti hanya boleh satu
+  -- yang terisi dalam satu baris (satu penelitian tidak terjadi di dua tahun
+  -- sekaligus); 'banyak' berarti boleh lebih dari satu. Dibaca saat validasi.
+  kelompok      VARCHAR(40) NOT NULL DEFAULT '',
+  pilih         ENUM('satu','banyak') NOT NULL DEFAULT 'banyak',
   keterangan    VARCHAR(255) NULL,
   PRIMARY KEY (tabel_kode, kunci),
   UNIQUE KEY uq_spec_urut (tabel_kode, urut),
@@ -162,10 +177,11 @@ CREATE TABLE sel (
         sql.append("INSERT INTO tabel_dukung (kode,nomor,judul,kriteria,khusus_profesi) VALUES "
                    "('%s',%d,'%s','%s',%d);" % (t["kode"], t["no"], esc(t["kode"] + ". Tabel " + t["kode"]), t["kriteria"], 1 if t["khusus"] else 0))
         for f in t["fields"]:
-            sql.append("INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,keterangan) VALUES "
-                       "('%s',%d,'%s','%s','%s','%s','%s');"
+            sql.append("INSERT INTO spec_field (tabel_kode,urut,label,kunci,tipe,asal,kelompok,pilih,keterangan) VALUES "
+                       "('%s',%d,'%s','%s','%s','%s','%s','%s','%s');"
                        % (t["kode"], f["urut"], esc(f["label"]), f["kunci"],
-                          esc(f["tipe"]), f["asal"], esc(f["ket"])))
+                          esc(f["tipe"]), f["asal"], esc(f["kelompok"]),
+                          f["pilih"] or "banyak", esc(f["ket"])))
     sql.append("")
     sql.append("SELECT CONCAT('seed: ', (SELECT COUNT(*) FROM tabel_dukung), ' tabel, ', "
                "(SELECT COUNT(*) FROM spec_field), ' field') AS hasil;")
@@ -187,9 +203,10 @@ CREATE TABLE sel (
                    % (t["no"], t["kriteria"], "true" if t["khusus"] else "false"))
         php.append("        'fields' => [")
         for f in t["fields"]:
-            php.append("            ['urut'=>%d,'label'=>'%s','kunci'=>'%s','tipe'=>'%s','asal'=>'%s','ket'=>'%s'],"
+            php.append("            ['urut'=>%d,'label'=>'%s','kunci'=>'%s','tipe'=>'%s','asal'=>'%s','kelompok'=>'%s','pilih'=>'%s','ket'=>'%s'],"
                        % (f["urut"], esc(f["label"]), f["kunci"], esc(f["tipe"]),
-                          f["asal"], esc(f["ket"])))
+                          f["asal"], esc(f["kelompok"]), f["pilih"] or "banyak",
+                          esc(f["ket"])))
         php.append("        ],")
         php.append("    ],")
     php.append("];")

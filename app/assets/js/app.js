@@ -107,6 +107,12 @@ window.__paint = () => paint();
 const pemuat = {
   kerjasama: () => import('./pages/kerjasama.js').then((m) => m.muat?.()),
   dosen: () => import('./pages/dosen.js').then((m) => m.muat?.()),
+  mahasiswa: () => import('./pages/mahasiswa.js').then((m) => m.muat?.()),
+  kurikulum: () => import('./pages/kurikulum.js').then((m) => m.muat?.()),
+  sarana: () => import('./pages/sarana.js').then((m) => m.muat?.()),
+  pustaka: () => import('./pages/pustaka.js').then((m) => m.muat?.()),
+  uji: () => import('./pages/uji.js').then((m) => m.muat?.()),
+  survei: () => import('./pages/survei.js').then((m) => m.muat?.()),
 };
 function muatHalaman() {
   const p = page();

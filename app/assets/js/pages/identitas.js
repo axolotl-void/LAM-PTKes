@@ -1,85 +1,122 @@
-/* identitas — dipisah dari views.js agar bisa dikerjakan paralel. */
-import {
-  esc, nf, head, strip, badge, card, cardHead, callout, dlist, mbar, empty, table,
-  D, KRITERIA, INSTRUMEN, PERIODE, DATA_PER, PRODI, ANGKATAN, MK, PENGGUNA,
-  WAHANA, SARANA, KOLEKSI, LANGGANAN, UPPS, PRODI_FIELDS, JENJANG,
-  KONSISTENSI_GAGAL, PERINGKAT, DOKUMEN, TABEL_TERBARU, KUNCI, RIWAYAT,
-  FEEDS, MASALAH_MHS, AKSES, TOTAL_MK_INSTRUMEN, ASPEK, IZIN, MATRIX,
-  PERMINTAAN, K3, NIM_GANDA, UNIK,
-} from '../pagekit.js';
+/* identitas — F-01. Tepat satu baris UPPS + satu prodi. Tidak ada "tambah".
+ *
+ * Kenapa tanpa daftar: instrumen menanyakan identitas institusi, bukan banyak
+ * institusi. Daftar di sini akan mengundang orang menambah baris kedua, dan
+ * semua tabel lain jadi tidak tahu harus merujuk yang mana.
+ */
+import { esc, head, card, cardHead, callout } from '../pagekit.js';
 
-function page(state) {
-  const kosong = [...UPPS, ...PRODI_FIELDS].filter((f) => f[3] === 'kosong');
-  const terisi = UPPS.length + PRODI_FIELDS.length - kosong.length;
-  const total = UPPS.length + PRODI_FIELDS.length;
-  const jenjangAktif = PRODI_FIELDS.find((f) => f[0] === 'jenjang')[2];
-  const j = JENJANG.find((x) => x.label === jenjangAktif) || JENJANG[0];
-  const tabelNA = j.tabelNA;
-  const wajib = INSTRUMEN.totalTabel - tabelNA;
+const API = '/api/identitas';
+let data = null;
+let galat = '';
+let sedang = false;
 
-  const field = ([key, label, val, status], bisaUbah) => {
-    const missing = status === 'kosong';
-    const lockField = key === KUNCI.menunggu;
-    return `<div class="fld ${missing ? 'is-missing' : ''} ${lockField ? 'is-lock' : ''}">
-      <span class="fld-lab">${esc(label)}</span>
-      <span class="fld-val">${missing ? '<i>belum diisi</i>' : esc(val)}</span>
-      ${lockField ? `<span class="fld-tag">menunggu buka kunci · nilai sekarang</span>` : ''}
-    </div>`;
-  };
+export async function muat() {
+  try {
+    const r = await fetch(API, { credentials: 'same-origin' });
+    if (!r.ok) { galat = (await r.json().catch(() => ({}))).error || `HTTP ${r.status}`; }
+    else { data = await r.json(); galat = ''; }
+  } catch (e) { galat = 'Server tidak merespons.'; }
+  if (window.__paint) window.__paint();
+}
 
-  return head('Identitas UPPS & Prodi',
-    `F-01 · ${total} field · ${terisi} terisi · ${kosong.length} kosong · menentukan ${wajib} tabel wajib`)
-  + `<div class="callout lock"><div class="c-body">
-      <h3>Terkunci — ${kosong.length + 1} hal di halaman ini</h3>
-      <p>Data identitas dikunci setelah verifikasi ${esc(KUNCI.dikunci_pada)} oleh ${esc(KUNCI.dikunci_oleh)}.
-      Field <b>${esc(KUNCI.menunggu)}</b> sedang diminta diubah oleh ${esc(KUNCI.permintaan_oleh)}
-      (${esc(KUNCI.permintaan_pada)}): <i>${esc(KUNCI.alasan)}</i>.</p>
-    </div><button class="btn btn-ghost btn-sm" disabled>Minta buka kunci</button></div>`
-  + `<div class="idgrid">
-      <section class="idcard">
-        <div class="idhead"><h2>Profil UPPS</h2><span class="idn">${UPPS.filter((f) => f[3] === 'ok').length}/${UPPS.length}</span></div>
-        ${UPPS.map((f) => field(f, false)).join('')}
-      </section>
-      <section class="idcard">
-        <div class="idhead"><h2>Profil Program Studi</h2><span class="idn">${PRODI_FIELDS.filter((f) => f[3] === 'ok').length}/${PRODI_FIELDS.length}</span></div>
-        ${PRODI_FIELDS.map((f) => field(f, false)).join('')}
-      </section>
-    </div>`
-  + `<section class="idcard idcard-wide">
-      <div class="idhead"><h2>Konsekuensi jenjang</h2>
-        <span class="idn">${esc(j.label)}</span></div>
-      <p class="idnote">Field <b>jenjang</b> dan <b>punya tahap profesi</b> menentukan tabel mana yang wajib
-      diisi di seluruh aplikasi. Ini bukan preferensi tampilan — mengubahnya mengubah
-      target ekspor.</p>
-      <div class="conc">
-        <div class="conc-cell">
-          <span class="conc-lab">Tabel wajib</span>
-          <b>${wajib}</b><span class="conc-sub">dari ${INSTRUMEN.totalTabel}</span>
+const fld = (id, label, nilai, opts = {}) => `<div class="frm-fld">
+  <label class="frm-lab" for="${id}">${esc(label)}${opts.wajib ? ' <span class="wajib">*</span>' : ''}</label>
+  <input class="input" id="${id}" name="${id}" type="${opts.tipe || 'text'}"
+    ${opts.maks ? `maxlength="${opts.maks}"` : ''} value="${esc(nilai ?? '')}" ${opts.dis || ''}></div>`;
+
+function page() {
+  if (!data) {
+    if (galat) return head('Identitas UPPS & Prodi', 'F-01')
+      + callout('bad', 'Data tidak bisa dimuat', `<p>${esc(galat)}</p>`)
+      + '<button class="btn btn-primary" data-muat-ulang="1">Coba lagi</button>';
+    return head('Identitas UPPS & Prodi', 'F-01') + '<p class="muted">Memuat…</p>';
+  }
+
+  const u = data.upps || {};
+  const p = data.prodi || {};
+  const boleh = data.boleh_ubah;
+  const dis = boleh ? '' : 'disabled';
+
+  return head('Identitas UPPS & Prodi', 'F-01 · satu baris, bukan daftar',
+    boleh ? '<button class="btn btn-primary" id="btnSimpanId">Simpan</button>' : '')
+    + (boleh ? '' : callout('warn', 'Hanya lihat', '<p>Peran Anda tidak boleh mengubah data.</p>'))
+    + card(cardHead('Perguruan tinggi & UPPS')
+      + `<div class="frm" id="frmIdentitas" data-upps="${u.id || ''}" data-prodi="${p.id || ''}">
+        ${fld('id_nama_pt', 'Nama perguruan tinggi', u.nama_pt, { wajib: 1, maks: 160, dis })}
+        ${fld('id_nama_upps', 'Nama UPPS', u.nama_upps, { wajib: 1, maks: 160, dis })}
+        <div class="frm-row">
+          ${fld('id_kota', 'Kota', u.kota, { maks: 80, dis })}
+          ${fld('id_telepon', 'Telepon', u.telepon, { maks: 40, dis })}
         </div>
-        <div class="conc-cell">
-          <span class="conc-lab">Tidak berlaku</span>
-          <b>${tabelNA}</b><span class="conc-sub">${tabelNA ? 'Khusus Profesi: Tabel ' + INSTRUMEN.tabelNA.join(' · ') : 'semua tabel berlaku'}</span>
+        <div class="frm-row">
+          ${fld('id_email', 'Email', u.email, { tipe: 'email', maks: 120, dis })}
+          ${fld('id_website', 'Website', u.website, { maks: 120, dis })}
         </div>
-        <div class="conc-cell">
-          <span class="conc-lab">Target dokumen</span>
-          <b>${INSTRUMEN.totalDokumen}</b><span class="conc-sub">butir wajib — progres ${D.dokTerunggah} terunggah</span>
+        ${fld('id_alamat', 'Alamat', u.alamat, { maks: 255, dis })}
+        ${fld('id_narahubung', 'Narahubung', u.narahubung, { maks: 120, dis })}
+        <div class="frm-err" id="idErr" role="alert"></div>
+      </div>`)
+    + card(cardHead('Program studi', 'yang sedang dipilih di sidebar')
+      + `<div class="frm">
+        ${fld('id_nama_ps', 'Nama program studi', p.nama_ps, { maks: 120, dis })}
+        <div class="frm-row">
+          <div class="frm-fld">
+            <label class="frm-lab">Jenjang</label>
+            <input class="input" value="${esc(p.jenjang || '—')}" disabled>
+            <span class="frm-hint">Jenjang tidak diubah di sini — itu data resmi prodi.</span>
+          </div>
+          ${fld('id_lama_studi', 'Lama studi (semester)', p.lama_studi_semester, { tipe: 'number', dis })}
         </div>
+        <label class="frm-centang">
+          <input type="checkbox" id="id_profesi" ${p.punya_tahap_profesi ? 'checked' : ''} ${dis}>
+          <span>Prodi ini punya tahap profesi (mahasiswa lanjut ke stase)</span>
+        </label>
+        <div class="frm-err" id="idErr2" role="alert"></div>
       </div>
-      ${tabelNA ? `<p class="idwarn">Kalau jenjang diubah ke <b>Sarjana dan Profesi</b>, ${tabelNA} tabel
-        yang sekarang "tidak berlaku" akan jadi wajib — target naik dari ${wajib} ke ${INSTRUMEN.totalTabel}
-        dan ${tabelNA * 2} butir dokumen baru muncul (79 tetap, tapi isinya bertambah).</p>` : ''}
-    </section>`
-  + `<section class="idcard idcard-wide">
-      <div class="idhead"><h2>Riwayat perubahan</h2><span class="idn">${RIWAYAT.length} entri</span></div>
-      <div class="rwt">
-        ${RIWAYAT.map(([waktu, siapa, apa, jenis]) => `<div class="rwt-row">
-          <span class="rwt-t">${esc(waktu)}</span>
-          <span class="rwt-who">${esc(siapa)}</span>
-          <span class="rwt-what">${esc(apa)}</span>
-          <span class="badge ${jenis === 'menunggu' ? 'warn' : jenis === 'dikunci' ? 'lock' : 'na'}">${esc(jenis)}</span>
-        </div>`).join('')}
-      </div>
-    </section>`;
+      <p class="foot-note">Akreditasi prodi (peringkat & tanggal) diisi di halaman
+        Periode Akreditasi, bukan di sini — supaya tidak ada dua tempat untuk angka yang sama.</p>`);
+}
+
+if (typeof document !== 'undefined' && !window.__idPasang) {
+  window.__idPasang = true;
+
+  document.addEventListener('click', async (e) => {
+    if (!data) return;
+    if (e.target.closest('[data-muat-ulang]')) {
+      data = null; galat = ''; if (window.__paint) window.__paint(); await muat(); return;
+    }
+    if (!e.target.closest('#btnSimpanId')) return;
+
+    const frm = document.getElementById('frmIdentitas');
+    const err = document.getElementById('idErr');
+    const btn = document.getElementById('btnSimpanId');
+    const v = (id) => document.getElementById(id)?.value ?? '';
+
+    const kirim = {
+      upps_id: frm.dataset.upps || '0',
+      prodi_id: frm.dataset.prodi || '0',
+      nama_pt: v('id_nama_pt'), nama_upps: v('id_nama_upps'),
+      kota: v('id_kota'), telepon: v('id_telepon'), email: v('id_email'),
+      website: v('id_website'), alamat: v('id_alamat'), narahubung: v('id_narahubung'),
+      nama_ps: v('id_nama_ps'), lama_studi_semester: v('id_lama_studi'),
+      punya_tahap_profesi: document.getElementById('id_profesi')?.checked ? 1 : 0,
+    };
+    if (!kirim.nama_pt.trim()) { err.textContent = 'Nama perguruan tinggi wajib diisi.'; return; }
+    if (!kirim.nama_upps.trim()) { err.textContent = 'Nama UPPS wajib diisi.'; return; }
+
+    sedang = true; btn.disabled = true; err.textContent = '';
+    try {
+      const r = await fetch(API, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin', body: JSON.stringify(kirim),
+      });
+      const j = await r.json();
+      if (!r.ok || j.error) { err.textContent = j.error || `Gagal (HTTP ${r.status}).`; return; }
+      await muat();
+    } catch (_) { err.textContent = 'Server tidak merespons. Data belum tersimpan.'; }
+    finally { sedang = false; btn.disabled = false; }
+  });
 }
 
 export default page;
