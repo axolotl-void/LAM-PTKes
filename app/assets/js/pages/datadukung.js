@@ -62,11 +62,12 @@ export const TABEL_WAJIB = TABEL.map((t) => [
 
 export const ST_KIND = {
   lengkap: 'ok', sebagian: 'warn', kosong: 'muted',
-  terkunci: 'lock', na: 'na',
+  terkunci: 'lock', na: 'na', hitung: 'lock',
 };
 const ST_TXT = {
   lengkap: 'Lengkap', sebagian: 'Sebagian', kosong: 'Kosong',
   terkunci: 'Terkunci', na: 'Tak berlaku',
+  hitung: 'Otomatis',
 };
 
 function chip(label, kind, n) {

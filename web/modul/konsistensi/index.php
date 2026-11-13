@@ -17,8 +17,7 @@ $PRODI ??= prodi_aktif();
 $per = $PRODI ? periode_aktif((int) $PRODI) : null;
 $perId = $per ? (int) $per['id'] : null;
 
-$isi = gaya_kerangka()
-     . '<link rel="stylesheet" href="' . e(BASE_URL) . 'aset/css/konsistensi.css?v=1">';
+$isi = '';
 
 if (!$PRODI || !$per) {
     $isi .= callout('warn', 'Periode belum ada',

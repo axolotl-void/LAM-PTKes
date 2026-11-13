@@ -898,3 +898,65 @@ body.belum-masuk .sb-toggle { display: none; }
   .rwt-who { grid-column: 1; }
   .rwt-what { grid-column: 1 / -1; }
 }
+
+/* ───────── kontrol isian ─────────
+   Ditambahkan 13 Nov 2026. Halaman lama read-only (label + nilai di .fld),
+   jadi app.css belum punya gaya input. Blok ini MENAMBAH, tidak mengubah
+   tema: token warna, radius, dan tipografi diambil dari variabel yang sudah
+   ada supaya tampilannya menyatu. */
+
+.frm { display: grid; gap: 12px; }
+.frm-row { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+.frm-fld { display: grid; gap: 5px; min-width: 0; }
+.frm-lab { font-size: var(--fs-xs); color: var(--ink3); font-weight: 600; }
+.frm-lab .wajib { color: var(--bad); }
+
+.input, .frm select, .frm textarea {
+  font: inherit; font-size: var(--fs-sm); color: var(--ink1);
+  padding: 8px 10px; min-height: 34px;
+  background: var(--surf);
+  border: 1px solid var(--bd); border-radius: 6px;
+  width: 100%; min-width: 0;
+}
+.frm textarea { min-height: 68px; resize: vertical; line-height: 1.5; }
+.input:focus, .frm select:focus, .frm textarea:focus {
+  outline: 2px solid var(--ind-t); border-color: var(--ind); outline-offset: 0;
+}
+.input[disabled], .frm [disabled] { background: var(--dv); color: var(--ink4); cursor: not-allowed; }
+.frm-hint { font-size: var(--fs-xs); color: var(--ink4); }
+.frm-err { font-size: var(--fs-xs); color: var(--bad); font-weight: 600; min-height: 1em; }
+
+/* Panel isian: mengambang di kanan, latar gelap menutup sisa layar.
+   Memakai .drawer yang sudah ada untuk isi di dalamnya. */
+.panel {
+  position: fixed; inset: 0; z-index: 60; display: none;
+}
+.panel.buka { display: block; }
+.panel-tirai { position: absolute; inset: 0; background: rgba(16,24,40,.42); }
+.panel-isi {
+  position: absolute; top: 0; right: 0; bottom: 0;
+  width: min(560px, 100%); background: var(--surf);
+  border-left: 1px solid var(--bd);
+  display: flex; flex-direction: column;
+  box-shadow: -8px 0 28px rgba(16,24,40,.14);
+}
+.panel-kepala {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px var(--cpad); border-bottom: 1px solid var(--dv);
+}
+.panel-kepala h2 { font-size: var(--fs-h2); font-weight: 700; }
+.panel-kepala .note { margin-left: auto; font-size: var(--fs-xs); color: var(--ink3); }
+.panel-badan { padding: var(--cpad); overflow-y: auto; flex: 1; }
+.panel-kaki {
+  display: flex; gap: 8px; justify-content: flex-end;
+  padding: 12px var(--cpad); border-top: 1px solid var(--dv); background: #FCFCFD;
+}
+.panel-x {
+  border: 0; background: none; cursor: pointer; color: var(--ink3);
+  font-size: 20px; line-height: 1; padding: 4px 8px; border-radius: 6px;
+}
+.panel-x:hover { background: var(--dv); color: var(--ink1); }
+
+@media (max-width: 640px) {
+  .panel-isi { width: 100%; }
+}

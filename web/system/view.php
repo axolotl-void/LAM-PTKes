@@ -89,6 +89,7 @@ const STATUS_LABEL = [
     'lengkap'   => 'Lengkap',
     'terkunci'  => 'Terkunci',
     'na'        => 'Tidak berlaku',
+    'hitung'    => 'Otomatis',
 ];
 
 function badge_status(string $status): string

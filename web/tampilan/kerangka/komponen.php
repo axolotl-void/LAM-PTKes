@@ -26,6 +26,10 @@ const BADGE_KIND = [
     'lengkap' => 'ok', 'sebagian' => 'warn', 'kosong' => 'muted',
     'terkunci' => 'lock', 'na' => 'na', 'gagal' => 'bad',
     'blokir' => 'bad', 'peringatan' => 'warn',
+    // 'hitung' = tabel yang seluruh field-nya dihitung sistem. Operator tidak
+    // bisa mengisinya, jadi jangan dilabeli "kosong" — itu menyalahkan orang
+    // yang memang tidak punya pekerjaan di situ.
+    'hitung' => 'lock',
 ];
 
 /** badge(kind, label) — terima nama status mentah ('lengkap') atau kelas ('ok'). */
@@ -46,19 +50,51 @@ function strip(array $sel): string
 {
     $out = '<div class="strip">';
     foreach ($sel as $s) {
-        $nilai = $s[0] ?? '';
-        $label = $s[1] ?? '';
-        $cls = $s[2] ?? '';
-        $out .= '<div class="cell"><div class="val ' . e((string) $cls) . '">' . $nilai
-            . '</div><div class="lab">' . e((string) $label) . '</div></div>';
+        // Dua bentuk dipakai modul: [nilai, label, kelas] dan
+        // ['label'=>, 'nilai'=>, 'satuan'=>]. Keduanya diterima.
+        if (is_array($s) && isset($s['label'])) {
+            $nilai = (string) ($s['nilai'] ?? '');
+            $label = (string) $s['label'];
+            if (!empty($s['dari'])) {
+                $label .= ' dari ' . $s['dari'];
+            }
+            if (!empty($s['satuan'])) {
+                $label .= ' ' . $s['satuan'];
+            }
+            $cls = (string) ($s['kelas'] ?? '');
+        } else {
+            $nilai = (string) ($s[0] ?? '');
+            $label = (string) ($s[1] ?? '');
+            $cls = (string) ($s[2] ?? '');
+        }
+        $out .= '<div class="cell"><div class="val ' . e($cls) . '">' . $nilai
+            . '</div><div class="lab">' . e($label) . '</div></div>';
     }
     return $out . '</div>';
 }
 
-/** kartu putih. $inner sudah HTML (tidak di-escape). */
-function kartu(string $inner, string $cls = ''): string
+/**
+ * Kartu putih. Dua bentuk pemanggilan, keduanya dipakai modul:
+ *
+ *   kartu($isi)                         -> kartu tanpa judul
+ *   kartu($judul, $isi, ['catatan'=>, 'kelas'=>, 'id'=>])
+ *
+ * $isi sudah HTML (tidak di-escape); $judul dan $catatan di-escape.
+ * Pilihan bentuk ini karena 8 modul dari agent memakai bentuk (judul, isi),
+ * sedangkan pagekit.js asli memakai card(inner) + cardHead() terpisah.
+ */
+function kartu(string $judulAtauIsi, ?string $isi = null, array $opsi = []): string
 {
-    return '<div class="card ' . e($cls) . '">' . $inner . '</div>';
+    if ($isi === null) {
+        return '<div class="card ' . e($judulAtauIsi) . '">';
+    }
+    $kelas = $opsi['kelas'] ?? '';
+    $id = $opsi['id'] ?? '';
+    $catatan = $opsi['catatan'] ?? '';
+    return '<div class="card ' . e((string) $kelas) . '"' . ($id !== '' ? ' id="' . e((string) $id) . '"' : '') . '>'
+        . cardHead($judulAtauIsi, (string) $catatan)
+        . $isi
+        . '</div>';
 }
 
 /** kepala kartu: judul + catatan kanan + tombol kanan. */
@@ -112,9 +148,12 @@ function tabel_html(array $kolom, array $baris, array $opsi = []): string
     $cls = $opsi['cls'] ?? '';
     // Dua bentuk kolom dipakai modul: ['Nama', 'r'] atau string 'Nama'.
     // Keduanya diterima supaya pemanggil tidak perlu diubah.
+    // TIGA bentuk kolom dipakai modul, semuanya harus diterima:
+    //   'Nama'                                   (string)
+    //   ['Nama', 'r']                            (posisional)
+    //   ['kunci'=>'no','label'=>'No','html'=>1]  (asosiatif, modul tabel)
     $norm = static function ($k): array {
         if (is_array($k)) {
-            // ['label'=>.., 'kunci'=>..] dipakai modul periode; ['Nama','r'] dipakai lainnya.
             if (isset($k['label'])) {
                 return [(string) $k['label'], (string) ($k['align'] ?? '')];
             }
@@ -122,6 +161,7 @@ function tabel_html(array $kolom, array $baris, array $opsi = []): string
         }
         return [(string) $k, ''];
     };
+    $kolomAsli = $kolom;
     $kolom = array_map($norm, $kolom);
 
     $out = '<div class="tbl-wrap"><table class="tbl ' . e($cls) . '"><thead><tr>';
@@ -129,8 +169,20 @@ function tabel_html(array $kolom, array $baris, array $opsi = []): string
         $out .= '<th class="' . ($k[1] === 'r' ? 'r' : '') . '">' . e($k[0]) . '</th>';
     }
     $out .= '</tr></thead><tbody>';
+    // Kolom asosiatif punya 'kunci'; dipakai untuk mengambil nilai dari baris
+    // asosiatif juga. Kalau kolom posisional, kunci = null dan baris dipakai
+    // apa adanya.
+    $kunciKolom = array_map(static fn($k) => is_array($k) ? ($k['kunci'] ?? null) : null, $kolomAsli);
+
     foreach ($baris as $r) {
         $sel = is_array($r) && isset($r['cells']) ? $r['cells'] : $r;
+        if (is_array($sel) && !array_is_list($sel) && !isset($sel['cells'])) {
+            $urut = [];
+            foreach ($kunciKolom as $kk) {
+                $urut[] = $kk !== null ? ($sel[$kk] ?? '') : '';
+            }
+            $sel = $urut;
+        }
         $trCls = is_array($r) && isset($r['cls']) ? ' class="' . e($r['cls']) . '"' : '';
         $out .= '<tr' . $trCls . '>';
         foreach ($sel as $i => $c) {

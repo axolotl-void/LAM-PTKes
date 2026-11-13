@@ -24,6 +24,19 @@ export const nf = (n) => (typeof n === 'number' && !Number.isInteger(n))
   ? n.toFixed(2).replace('.', ',')
   : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
+/* Label status tabel. Dulu di views.js, dipindah ke sini supaya halaman
+   (pages/*.js) tidak perlu mengimpor views.js — views.js mengimpor semua
+   halaman, jadi impor balik = siklus, dan ESM gagal dengan
+   "Cannot access 'default' before initialization". */
+export const ST_LABEL = {
+  lengkap: 'Lengkap', sebagian: 'Sebagian', kosong: 'Kosong',
+  terkunci: 'Terkunci', na: 'Tak berlaku', gagal: 'Gagal',
+  // Tabel yang seluruh field-nya dihitung sistem (0 field Input). Operator
+  // tidak bisa mengisinya, jadi bukan "Kosong" — itu menyalahkan orang yang
+  // memang tidak punya pekerjaan di situ. Contoh: Tabel 03,04,05,06,09,31.
+  hitung: 'Otomatis',
+};
+
 /* ── komponen yang sudah ada di app.css ──────────────────────────── */
 
 /** judul halaman + subjudul + tombol kanan */

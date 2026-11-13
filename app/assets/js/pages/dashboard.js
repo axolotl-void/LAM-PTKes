@@ -1,5 +1,5 @@
 /* dashboard — dipisah dari views.js agar bisa dikerjakan paralel. */
-import { ST_LABEL } from '../views.js';
+import { ST_LABEL } from '../pagekit.js';
 import { LIVE, R } from '../api.js';
 import {
   esc, nf, head, strip, badge, card, cardHead, callout, dlist, mbar, empty, table,

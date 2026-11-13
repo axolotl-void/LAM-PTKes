@@ -96,6 +96,20 @@ function pasangMasuk() {
 }
 
 /* ── shell ────────────────────────────────────────────────────────── */
+/* Dipakai modul halaman yang memuat datanya sendiri (mis. kerjasama) untuk
+   meminta render ulang setelah data datang. Tanpa ini halaman berhenti di
+   "Memuat…" karena render pertama terjadi sebelum fetch selesai. */
+window.__paint = () => paint();
+
+/* Halaman yang memuat datanya sendiri (kerjasama/Tabel 38): panggil `muat()`
+   modulnya setelah render. Dideklarasikan SEBELUM dipakai oleh listener
+   hashchange — `const` tidak di-hoist seperti function. */
+const pemuat = { kerjasama: () => import('./pages/kerjasama.js').then((m) => m.muat?.()) };
+function muatHalaman() {
+  const p = page();
+  if (pemuat[p]) pemuat[p]();
+}
+
 function paint() {
   if (!SESI.data) return;
   const p = page();
@@ -252,7 +266,7 @@ function boot() {
     }
   });
 
-  window.addEventListener('hashchange', paint);
+  window.addEventListener('hashchange', () => { paint(); muatHalaman(); });
 
   // Cek sesi dulu, baru render. Tanpa sesi: layar masuk, bukan dashboard.
   hydrate().then((live) => {
@@ -262,6 +276,7 @@ function boot() {
     const prodiSesi = SESI.data.prodi;
     if (PRODI.some((p) => p.nama === prodiSesi)) state.prodi = prodiSesi;
     paint();
+    muatHalaman();
   });
 }
 

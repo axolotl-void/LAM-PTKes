@@ -33,11 +33,9 @@ import * as m_datadukung from './pages/datadukung.js';
 import * as m_dokumen from './pages/dokumen.js';
 import * as m_konsistensi from './pages/konsistensi.js';
 
-/* label status tabel — dipakai beberapa halaman */
-export const ST_LABEL = {
-  lengkap: 'Lengkap', sebagian: 'Sebagian', kosong: 'Kosong',
-  terkunci: 'Terkunci', na: 'Tak berlaku', gagal: 'Gagal',
-};
+/* Label status: sekarang di pagekit.js (satu definisi). views.js hanya
+   meneruskan supaya pemanggil lama tetap jalan. */
+export { ST_LABEL } from './pagekit.js';
 
 /* ── peta halaman ─────────────────────────────────────────────────── */
 const MODS = {

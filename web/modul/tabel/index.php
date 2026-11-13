@@ -13,11 +13,14 @@ require_once __DIR__ . '/../../system/layout.php';
 require_once dirname(__DIR__, 2) . '/tampilan/kerangka/komponen.php';
 require_once __DIR__ . '/proses.php';
 
-/** CSS modul. layout.php dibekukan dan hanya memuat app.css. */
+/**
+ * Dulu mengembalikan <link> ke tabel.css buatan agent. Sekarang CSS-nya
+ * assets/css/app.css milik desain asli, dimuat layout. Fungsi tetap ada
+ * supaya pemanggil lama tidak perlu diubah.
+ */
 function gaya_tabel(): string
 {
-
-
+    return '';
 }
 
 $aksi = preg_replace('/[^a-z]/', '', $_GET['a'] ?? 'index');

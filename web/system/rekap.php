@@ -52,10 +52,14 @@ function status_satu_tabel(string $tabelKode, int $prodiId, int $periodeId): arr
     $adaBaris = (int) ($kunci['n'] ?? 0);
     $dikunci = $adaBaris > 0 && (int) ($kunci['dikunci'] ?? 0) === 1;
 
-    // Tabel dengan 0 field Input TIDAK otomatis lengkap: isinya dihitung sistem
-    // dari master, jadi harus ada baris dulu. Tabel 26 misalnya hanya punya
-    // 1 field Hitung — kosong sampai master terisi.
-    if ($adaBaris === 0) {
+    // Tabel yang SEMUA field-nya dihitung sistem (0 field Input) tidak bisa
+    // dinilai "kosong" — operator memang tidak bisa mengisinya, dan label
+    // "kosong" menyalahkan orang yang tidak punya pekerjaan di situ.
+    // Contoh: Tabel 03, 04, 05, 06, 09, 31 seluruhnya asal Master/Hitung.
+    $hanyaHitung = $total === 0;
+    if ($hanyaHitung) {
+        $status = $adaBaris > 0 ? 'lengkap' : 'hitung';
+    } elseif ($adaBaris === 0) {
         $status = 'kosong';
     } elseif ($total === 0) {
         // tidak ada yang bisa diketik, tapi baris sudah ada -> dianggap lengkap
@@ -76,6 +80,7 @@ function status_satu_tabel(string $tabelKode, int $prodiId, int $periodeId): arr
 
     return [
         'status' => $status, 'terisi' => $terisi, 'total' => $total,
+        'hanya_hitung' => $hanyaHitung,
         'dikunci' => $dikunci, 'berlaku' => $berlaku, 'baris' => $adaBaris,
     ];
 }
@@ -124,6 +129,10 @@ function rekap_per_kriteria(int $prodiId, int $periodeId): array
         if ($t['status'] === 'na') {
             continue;
         }
+        if ($t['status'] === 'hitung') {
+            $out[$k]['hitung'] = ($out[$k]['hitung'] ?? 0) + 1;
+            continue;
+        }
         $out[$k]['wajib']++;
         if (in_array($t['status'], ['lengkap', 'terkunci'], true)) {
             $out[$k]['lengkap']++;
@@ -140,7 +149,7 @@ function rekap_ringkas(int $prodiId, int $periodeId): array
 {
     $semua = rekap_semua_tabel($prodiId, $periodeId);
     $wajib = array_filter($semua, fn($t) => $t['status'] !== 'na');
-    $hitung = ['lengkap' => 0, 'terkunci' => 0, 'sebagian' => 0, 'kosong' => 0];
+    $hitung = ['lengkap' => 0, 'terkunci' => 0, 'sebagian' => 0, 'kosong' => 0, 'hitung' => 0];
     foreach ($wajib as $t) {
         $hitung[$t['status']] = ($hitung[$t['status']] ?? 0) + 1;
     }
@@ -153,6 +162,7 @@ function rekap_ringkas(int $prodiId, int $periodeId): array
         'terkunci' => $hitung['terkunci'],
         'sebagian' => $hitung['sebagian'],
         'kosong'   => $hitung['kosong'],
+        'hitung'   => $hitung['hitung'],
         'selesai'  => $selesai,
         'belum'    => count($wajib) - $selesai,
     ];

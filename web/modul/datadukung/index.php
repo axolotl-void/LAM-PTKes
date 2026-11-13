@@ -69,7 +69,7 @@ $isi = strip([
     [e((string) $ringkas['kosong']), 'kosong', 'bad'],
 ]);
 
-$isi .= kartu(
+$isi .= kartu('',
     cardHead('38 tabel data dukung', $ringkas['selesai'] . ' dari ' . $ringkas['wajib'] . ' selesai')
     . tabel_html(
         [['No', ''], ['Tabel', ''], ['Krit', ''], ['Status', ''], ['Field', 'r'], ['', 'r']],
