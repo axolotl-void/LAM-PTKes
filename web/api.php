@@ -38,6 +38,7 @@ require_once __DIR__ . '/system/tarik.php';
 require_once __DIR__ . '/system/tabel15.php';
 require_once __DIR__ . '/system/hitung_peta.php';
 require_once __DIR__ . '/system/ekspor.php';
+require_once __DIR__ . '/modul/dokumen/logika.php';
 require_once __DIR__ . '/spesifikasi/tabel.php';
 
 /* ── util ───────────────────────────────────────────────────────── */
@@ -646,6 +647,75 @@ if ($r0 === 'dokumen') {
     if (!$p || !$per) {
         json_keluar(['error' => 'Prodi/periode belum ditetapkan.'], 409);
     }
+
+    // Unggah: multipart, bukan JSON. Berkas tidak bisa dikirim lewat JSON
+    // tanpa base64, dan base64 membengkakkan 33% + memakan memori.
+    if ($r1 === 'unggah' && $metode === 'POST') {
+        wajib('ISI');
+        $id = (int) ($_POST['dok_spec_id'] ?? 0);
+        if ($id <= 0) {
+            json_keluar(['error' => 'Butir dokumen tidak dipilih.'], 400);
+        }
+        if (!isset($_FILES['berkas'])) {
+            json_keluar(['error' => 'Tidak ada berkas yang dikirim.'], 400);
+        }
+        // Batas ukuran diperiksa SEBELUM diproses: PHP sudah menolak di
+        // upload_max_filesize dan berkasnya kosong, yang membingungkan.
+        if ((int) ($_FILES['berkas']['size'] ?? 0) > 20 * 1024 * 1024) {
+            json_keluar(['error' => 'Berkas lebih dari 20 MB.'], 400);
+        }
+        $hasil = dok_simpan_unggah(
+            $id, $p, (int) $per['id'], $_FILES['berkas'],
+            (int) (pengguna()['id'] ?? 0),
+            $_POST['berlaku_sampai'] ?? null,
+            (string) ($_POST['catatan'] ?? '')
+        );
+        json_keluar($hasil, $hasil['ok'] ? 200 : 400);
+    }
+
+    if ($r1 === 'hapus' && $metode === 'POST') {
+        wajib('ISI');
+        $b = input_json();
+        $unggahId = (int) ($b['id'] ?? 0);
+        $u = q1('SELECT * FROM dokumen_unggah WHERE id = ? AND prodi_id = ? AND periode_id = ?',
+            [$unggahId, $p, (int) $per['id']]);
+        if (!$u) {
+            json_keluar(['error' => 'Unggahan tidak ditemukan.'], 404);
+        }
+        ex('DELETE FROM dokumen_unggah WHERE id = ?', [$unggahId]);
+        dok_hapus_berkas((string) $u['berkas']);
+        ex('INSERT INTO audit (pengguna_id, prodi_id, aksi, entitas, entitas_id, nilai_lama)
+            VALUES (?,?,?,?,?,?)',
+            [pengguna()['id'] ?? null, $p, 'hapus', 'dokumen', (string) $unggahId,
+             json_encode($u, JSON_UNESCAPED_UNICODE)]);
+        json_keluar(['ok' => true]);
+    }
+
+    // Unduh: hanya berkas yang memang terdaftar di DB untuk prodi+periode ini.
+    // Path diambil dari nama_simpan (dibuat server), BUKAN dari parameter
+    // klien — kalau dari klien, siapa pun bisa membaca berkas sembarang.
+    if ($r1 === 'unduh' && $metode === 'GET') {
+        $unggahId = (int) ($_GET['id'] ?? 0);
+        $u = q1('SELECT * FROM dokumen_unggah WHERE id = ? AND prodi_id = ? AND periode_id = ?',
+            [$unggahId, $p, (int) $per['id']]);
+        if (!$u) {
+            json_keluar(['error' => 'Berkas tidak ditemukan.'], 404);
+        }
+        // Nama berkas diambil dari kolom `berkas` (dibuat server), bukan dari
+        // parameter klien — kalau dari klien, siapa pun bisa membaca berkas
+        // mana pun di folder unggah.
+        $path = UNGGAH . '/' . basename((string) $u['berkas']);
+        if (!is_file($path)) {
+            json_keluar(['error' => 'Berkas hilang dari folder unggah.'], 404);
+        }
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="'
+            . preg_replace('/[^A-Za-z0-9._-]/', '_', (string) $u['nama_asli']) . '"');
+        header('Content-Length: ' . (string) filesize($path));
+        header('Cache-Control: no-store');
+        readfile($path);
+        exit;
+    }
     $daftar = q(
         'SELECT d.id, d.kriteria, d.nomor, d.nama,
                 (SELECT COUNT(*) FROM dokumen_unggah u
@@ -657,7 +727,13 @@ if ($r0 === 'dokumen') {
     json_keluar([
         'rekap' => rekap_dokumen($p, (int) $per['id']),
         'per_kriteria' => rekap_dokumen_per_kriteria($p, (int) $per['id']),
-        'butir' => $daftar,
+        // dok_daftar() menghitung status per butir (belum/ada/kedaluwarsa) dan
+        // membawa riwayat versi. angkanya dari rekap, jadi tidak mungkin beda.
+        'grup' => dok_daftar($p, (int) $per['id']),
+        'kedaluwarsa' => dok_kedaluwarsa($p, (int) $per['id']),
+        'boleh_ubah' => boleh('ISI'),
+        'batas' => ['byte' => 20 * 1024 * 1024,
+                    'ekstensi' => ['pdf', 'docx', 'xlsx', 'jpg', 'jpeg', 'png']],
     ]);
 }
 

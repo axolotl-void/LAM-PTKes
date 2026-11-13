@@ -1011,3 +1011,41 @@ body.belum-masuk .sb-toggle { display: none; }
 /* Label kolom hitungan dari nama kunci (mis. "Lulusan ipk 2 00 3 00") kurang
    terbaca. Dibuat kapital di awal saja supaya tidak berteriak. */
 .tbl-hitung thead th { text-transform: none; }
+
+/* ── dokumen pendukung ────────────────────────────────────────────────
+   Daftar 78 butir terlalu panjang untuk dibuka semua sekaligus; tiap
+   kriteria bisa dilipat. */
+.dok-grup { margin-bottom: 10px; }
+.dok-grup-kepala {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  width: 100%; background: none; border: 0; padding: 0; cursor: pointer;
+  font: inherit; color: inherit; text-align: left;
+}
+.dok-grup-nama { font-weight: 700; font-size: var(--fs-sm); }
+.dok-grup-angka { display: flex; align-items: center; gap: 8px; font-size: var(--fs-xs); color: var(--ink3); }
+.dok-panah { font-size: 11px; }
+.dok-isi { margin-top: 12px; border-top: 1px solid var(--dv); }
+
+.dok-butir { padding: 10px 0; border-bottom: 1px solid var(--dv); }
+.dok-butir:last-child { border-bottom: 0; }
+.dok-kepala { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.dok-nomor { font-family: var(--mono); font-size: var(--fs-xs); color: var(--ink3); margin-right: 8px; }
+.dok-nama { font-size: var(--fs-sm); margin-top: 4px; line-height: 1.45; }
+.dok-aksi { flex-shrink: 0; }
+.dok-pilih { cursor: pointer; }
+.dok-daftar-versi { margin-top: 8px; display: grid; gap: 4px; }
+.dok-versi { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: var(--fs-xs); }
+.dok-err { font-size: var(--fs-xs); color: var(--bad); margin-top: 6px; }
+.dok-err.muted { color: var(--ink3); }
+
+/* Dokumen pendukung: nama butir jadi judul yang bisa dipindai. Sebelumnya
+   seluruh kalimat 266 karakter ditampilkan sebagai satu blok abu-abu. */
+.dok-nama { font-size: var(--fs-sm); font-weight: 600; color: var(--ink); line-height: 1.4; }
+.dok-rincian {
+  font-size: var(--fs-xs); color: var(--ink3); line-height: 1.5;
+  margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--dv);
+}
+/* Chevron lipatan harus terlihat sebagai kontrol, bukan teks statis. */
+.dok-grup-kepala:hover .dok-grup-nama { text-decoration: underline; }
+.dok-panah { font-size: 12px; color: var(--ink2); }
+.dok-grup-kepala { padding: 2px 0; }

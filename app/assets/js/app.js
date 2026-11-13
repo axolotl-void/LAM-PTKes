@@ -122,6 +122,7 @@ const pemuat = {
   tabelisi: () => import('./pages/tabelisi.js').then((m) => m.muat?.()),
   tabelmatriks: () => import('./pages/tabelmatriks.js').then((m) => m.muat?.()),
   tabelhitung: () => import('./pages/tabelhitung.js').then((m) => m.muat?.()),
+  dokumen: () => import('./pages/dokumen.js').then((m) => m.muat?.()),
 };
 function muatHalaman() {
   const p = page();
