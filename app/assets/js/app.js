@@ -204,12 +204,37 @@ function boot() {
       return;
     }
 
-    const keluar = e.target.closest('[data-keluar]');
+    // Tombol "Keluar" ada di index.html sebagai #btnKeluar (desain asli).
+    // Sebelumnya handler hanya mencari [data-keluar] — atribut yang tidak
+    // pernah ada di HTML, jadi tombolnya tampil tapi tidak melakukan apa pun.
+    const keluar = e.target.closest('[data-keluar], #btnKeluar');
     if (keluar) {
-      api.keluar().then(async () => {
+      keluar.disabled = true;
+      api.keluar().then(async (r) => {
+        // api.keluar() menelan galat dan mengembalikan null. Kalau server
+        // tidak menjawab, JANGAN berpura-pura sudah keluar: sesi di server
+        // masih hidup, dan pengguna mengira sudah aman.
+        if (r === null) {
+          keluar.disabled = false;
+          alert('Tidak bisa keluar: server tidak merespons. Sesi Anda masih aktif.');
+          return;
+        }
         SESI.data = null;
         await hydrate();
-        if (!SESI.data) layarMasuk('Sudah keluar.');
+        if (!SESI.data) {
+          // Tombol keluar adalah milik sesi. Tanpa sesi ia tidak punya arti,
+          // dan menyisakannya membuat layar masuk terlihat seperti masih login.
+          document.getElementById('btnKeluar')?.setAttribute('hidden', '');
+          ['whoNama', 'whoPeran'].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '';
+          });
+          const av2 = document.getElementById('whoAvatar');
+          if (av2) { av2.textContent = ''; av2.title = 'belum masuk'; }
+          layarMasuk('Sudah keluar.');
+        } else {
+          keluar.disabled = false;
+        }
       });
       return;
     }
