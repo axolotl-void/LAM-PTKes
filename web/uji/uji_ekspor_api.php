@@ -71,7 +71,15 @@ cek('berkas berformat ZIP/XLSX (magic bytes PK)', $kepala === 'PK',
 
 echo "\n── isi sheet ──\n";
 
-$nama = array_map(fn($s) => (string) ($s['nama'] ?? ''), $sheets);
+// Nama yang benar-benar masuk ke workbook = hasil xlsx_nama_sheet(), bukan
+// nama mentah (yang bisa >31 karakter dan memuat karakter terlarang).
+$nama = [];
+$pakaiNama = [];
+foreach ($sheets as $s) {
+    $n = xlsx_nama_sheet((string) ($s['nama'] ?? ''), $pakaiNama);
+    $pakaiNama[] = $n;
+    $nama[] = $n;
+}
 cek('sheet Ringkasan paling depan', ($nama[0] ?? '') === 'Ringkasan', $nama[0] ?? '');
 cek('lebih dari satu sheet', count($nama) > 1, (string) count($nama));
 

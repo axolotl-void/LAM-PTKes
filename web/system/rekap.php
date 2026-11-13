@@ -25,7 +25,7 @@ require_once __DIR__ . '/db.php';
  */
 function status_satu_tabel(string $tabelKode, int $prodiId, int $periodeId): array
 {
-    $info = q1('SELECT kode, khusus_profesi FROM tabel_dukung WHERE kode = ?', [$tabelKode]);
+    $info = q1('SELECT kode, khusus_profesi, varian FROM tabel_dukung WHERE kode = ?', [$tabelKode]);
     if (!$info) {
         return ['status' => 'na', 'terisi' => 0, 'total' => 0, 'dikunci' => false, 'berlaku' => false];
     }
@@ -56,7 +56,11 @@ function status_satu_tabel(string $tabelKode, int $prodiId, int $periodeId): arr
     // dinilai "kosong" — operator memang tidak bisa mengisinya, dan label
     // "kosong" menyalahkan orang yang tidak punya pekerjaan di situ.
     // Contoh: Tabel 03, 04, 05, 06, 09, 31 seluruhnya asal Master/Hitung.
-    $hanyaHitung = $total === 0;
+    // Tabel ber-varian 'hitung' mengambil seluruh angkanya dari tabel master
+    // (mis. Tabel 21 dari `bimbingan`). Kolom "No" yang tersisa di spec hanya
+    // nomor urut, bukan isian operator — jadi tabel itu tetap dihitung
+    // otomatis meski $total = 1.
+    $hanyaHitung = ($total === 0) || (($info['varian'] ?? '') === 'hitung');
     if ($hanyaHitung) {
         $status = $adaBaris > 0 ? 'lengkap' : 'hitung';
     } elseif ($adaBaris === 0) {

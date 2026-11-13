@@ -62,8 +62,14 @@ cek('lebih dari satu sheet', count($sheets) > 1, (string) count($sheets));
 
 /* ── (d) nama sheet sah ─────────────────────────────────────────── */
 $namaBuruk = [];
+// Yang dikirim ke Excel adalah hasil xlsx_nama_sheet() (potong 31 karakter,
+// buang karakter terlarang), BUKAN nama mentah dari ekspor_sheets(). Menguji
+// nama mentah membuat uji gagal padahal berkasnya sah — dan sebaliknya, bisa
+// lolos padahal pemotongan tidak jalan.
+$pakaiNama = [];
 foreach ($sheets as $s) {
-    $n = (string) $s['nama'];
+    $n = xlsx_nama_sheet((string) $s['nama'], $pakaiNama);
+    $pakaiNama[] = $n;
     if (mb_strlen($n) > 31 || mb_strlen($n) < 1 || preg_match('/[:\\\\\/?\*\[\]]/', $n) === 1) {
         $namaBuruk[] = $n;
     }

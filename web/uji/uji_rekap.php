@@ -48,20 +48,25 @@ cek('tidak ada yang lengkap tanpa baris',
 $kodeHitung = array_values(array_map(fn($t) => $t['kode'],
     array_filter($semua, fn($t) => $t['status'] === 'hitung')));
 sort($kodeHitung);
-cek('tepat 7 tabel berstatus hitung', count($kodeHitung) === 7, implode(',', $kodeHitung));
-// 15 ikut masuk: bentuknya matriks hitung dari master dosen, tidak ada isian.
+cek('tepat 8 tabel berstatus hitung', count($kodeHitung) === 8, implode(',', $kodeHitung));
 // Daftar ini SENGAJA eksplisit — kalau ada tabel lain jadi hitung tanpa
 // disengaja, itu berarti field Input-nya hilang dan harus ketahuan.
-cek('tabel hitung = 03,04,05,06,09,15,31', $kodeHitung === ['03', '04', '05', '06', '09', '15', '31'],
+// 15 & 21 ikut: bentuknya matriks/hitungan dari master (dosen, bimbingan),
+// bukan isian operator. 15 = 0 field Input; 21 punya satu "No" (nomor urut).
+cek('tabel hitung = 03,04,05,06,09,15,21,31',
+    $kodeHitung === ['03', '04', '05', '06', '09', '15', '21', '31'],
     implode(',', $kodeHitung));
 
-// Bukan sekadar angka cocok: tiap tabel 'hitung' memang 0 field Input di DB.
-$tanpaInput = [];
-foreach ($kodeHitung as $kode) {
-    $n = (int) q1("SELECT COUNT(*) n FROM spec_field WHERE tabel_kode = ? AND asal = 'Input'", [$kode])['n'];
-    if ($n !== 0) { $tanpaInput[] = "$kode=$n"; }
-}
-cek('setiap tabel hitung punya 0 field Input di DB', $tanpaInput === [], implode(',', $tanpaInput));
+// Bukan sekadar angka cocok: tiap tabel 'hitung' memang tidak punya kolom
+// isian (kecuali "No"). Diperiksa di bawah lewat $fieldHitung.
+// Tabel 21 punya satu field Input ("No") tapi statusnya tetap hitung karena
+// varian='hitung'. Kunci invariannya: yang dihitung otomatis TIDAK BOLEH
+// punya kolom isian selain "No".
+$fieldHitung = q("SELECT tabel_kode, label FROM spec_field
+                  WHERE asal = 'Input' AND tabel_kode IN ('03','04','05','06','09','15','21','31')
+                  AND label <> 'No'");
+cek('tabel hitung tidak punya kolom isian selain "No"', $fieldHitung === [],
+    json_encode($fieldHitung));
 
 // Tabel dengan asal Input hanya 109 dari 243 -> total per tabel tidak boleh 243
 $t1 = q1("SELECT COUNT(*) n FROM spec_field WHERE tabel_kode = '01' AND asal = 'Input'");

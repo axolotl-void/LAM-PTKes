@@ -48,5 +48,46 @@ foreach ($berkas as $f) {
     }
 }
 
+/* ── modul yang punya muat() WAJIB terdaftar di `pemuat` ────────────────
+ * Bug yang pernah lolos: `identitas.js` punya muat(), endpoint-nya membalas
+ * 200, tapi `pemuat` di app.js tidak punya entri `identitas`. Hasilnya
+ * halaman berhenti di "Memuat…" selamanya TANPA error di konsol — karena
+ * tidak ada yang memanggil muat(). Tidak ada uji lain yang menangkap ini:
+ * sintaksnya benar, API-nya benar, halamannya cuma diam.
+ */
+$app = file_get_contents($akar . '/app.js');
+if ($app === false) {
+    $gagal++;
+    printf("  GAGAL app.js tidak terbaca\n");
+} else {
+    preg_match('/const pemuat = \{(.*?)\n\};/s', $app, $mp);
+    $blok = $mp[1] ?? '';
+    $terdaftar = [];
+    foreach (preg_split('/\r?\n/', $blok) as $baris) {
+        if (preg_match('/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*:/', $baris, $mm)) {
+            $terdaftar[] = $mm[1];
+        }
+    }
+
+    $hilang = [];
+    foreach (glob($akar . '/pages/*.js') as $file) {
+        $nama = basename($file, '.js');
+        $isi = (string) file_get_contents($file);
+        if (preg_match('/export\s+async\s+function\s+muat\s*\(/', $isi)
+            && !in_array($nama, $terdaftar, true)) {
+            $hilang[] = $nama;
+        }
+    }
+
+    if ($hilang === []) {
+        printf("  ok   semua modul ber-muat() terdaftar di pemuat (%d entri)\n", count($terdaftar));
+    } else {
+        $gagal++;
+        printf("  GAGAL modul punya muat() tapi tidak ada di pemuat app.js: %s\n",
+            implode(', ', $hilang));
+        printf("        halaman itu akan berhenti di \"Memuat…\" tanpa error.\n");
+    }
+}
+
 printf("\n%d berkas, %d gagal\n", count($berkas), $gagal);
 exit($gagal === 0 ? 0 : 1);

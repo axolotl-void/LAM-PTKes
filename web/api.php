@@ -30,6 +30,7 @@ require_once __DIR__ . '/system/view.php';
 require_once __DIR__ . '/system/rekap.php';
 require_once __DIR__ . '/system/data.php';
 require_once __DIR__ . '/system/kerjasama.php';
+require_once __DIR__ . '/system/bimbingan.php';
 require_once __DIR__ . '/system/dosen.php';
 require_once __DIR__ . '/system/koleksi.php';
 require_once __DIR__ . '/system/identitas.php';
@@ -38,6 +39,7 @@ require_once __DIR__ . '/system/tarik.php';
 require_once __DIR__ . '/system/tabel15.php';
 require_once __DIR__ . '/system/hitung_peta.php';
 require_once __DIR__ . '/system/ekspor.php';
+require_once __DIR__ . '/system/pdf.php';
 require_once __DIR__ . '/modul/dokumen/logika.php';
 require_once __DIR__ . '/spesifikasi/tabel.php';
 
@@ -437,6 +439,63 @@ if ($r0 === 'kerjasama') {
     json_keluar(['error' => 'metode tidak didukung'], 405);
 }
 
+/* ── bimbingan (sumber Tabel 21) ────────────────────────────────── */
+if ($r0 === 'bimbingan') {
+    wajib_masuk();
+    $p = prodi_aktif();
+
+    if ($metode === 'GET') {
+        $daftar = bimbingan_daftar($p);
+        $pilihan = bimbingan_pilihan($p);
+        // Halaman ini hanya berguna kalau dosen/mahasiswa sudah ada. Katakan
+        // terus terang apa yang kurang, jangan tampilkan dropdown kosong.
+        $kurang = [];
+        if ($pilihan['dosen'] === []) { $kurang[] = 'Belum ada dosen aktif di prodi ini.'; }
+        if ($pilihan['mahasiswa'] === []) { $kurang[] = 'Belum ada mahasiswa aktif di prodi ini.'; }
+
+        json_keluar([
+            'bimbingan' => $daftar,
+            'pilihan' => $pilihan,
+            'status' => BMB_STATUS,
+            'kurang' => $kurang,
+            'boleh_ubah' => boleh('ISI'),
+        ]);
+    }
+
+    if ($metode === 'POST') {
+        wajib('ISI');
+        $b = input_json();
+        $id = (int) ($b['id'] ?? 0);
+        $oleh = (int) ($_SESSION['pengguna']['id'] ?? 0);
+        $hasil = $id > 0
+            ? bimbingan_ubah($id, $b, $p, $oleh)
+            : bimbingan_tambah($b, $p, $oleh);
+        if ($hasil['ok']) {
+            // Pola sama dengan kerjasama.php: audit ditulis di jalur simpan,
+            // bukan lewat fungsi audit() yang tidak ada di proyek ini.
+            ex('INSERT INTO audit (pengguna_id, prodi_id, aksi, entitas, entitas_id, nilai_baru)
+                VALUES (?,?,?,?,?,?)',
+                [pengguna()['id'] ?? null, $p, $id > 0 ? 'ubah' : 'tambah',
+                 'bimbingan', (string) ($hasil['id'] ?? $id), json_encode($b, JSON_UNESCAPED_UNICODE)]);
+        }
+        json_keluar($hasil, ($hasil['ok'] ?? false) ? 200 : 400);
+    }
+
+    if ($metode === 'DELETE') {
+        wajib('ISI');
+        $b = input_json();
+        $id = (int) ($b['id'] ?? $r1);
+        $hasil = bimbingan_hapus($id, $p);
+        if ($hasil['ok']) {
+            ex('INSERT INTO audit (pengguna_id, prodi_id, aksi, entitas, entitas_id, nilai_lama)
+                VALUES (?,?,?,?,?,?)',
+                [pengguna()['id'] ?? null, $p, 'hapus', 'bimbingan', (string) $id, null]);
+        }
+        json_keluar($hasil, ($hasil['ok'] ?? false) ? 200 : 400);
+    }
+    json_keluar(['error' => 'metode tidak didukung'], 405);
+}
+
 /* ── ekspor ─────────────────────────────────────────────────────── */
 if ($r0 === 'ekspor') {
     wajib_masuk();
@@ -453,6 +512,52 @@ if ($r0 === 'ekspor') {
                 'kode' => $x['kode'], 'nama' => $x['nama'], 'pesan' => $x['pesan'],
             ], $b),
         ]);
+    }
+
+    if ($r1 === 'pdf') {
+        if (!$p) {
+            json_keluar(['error' => 'Prodi belum dipilih.'], 409);
+        }
+        // Aturan blokir SAMA dengan XLSX: berkas tidak konsisten antar tabel
+        // lebih berbahaya daripada tidak ada berkas.
+        $blokir = ekspor_blokir($p);
+        if ($blokir !== []) {
+            json_keluar([
+                'error' => 'Ekspor belum bisa: ' . count($blokir) . ' hal harus diperbaiki.',
+                'blokir' => array_map(fn($b) => ['kode' => $b['kode'], 'pesan' => $b['pesan']], $blokir),
+            ], 409);
+        }
+        $data = ekspor_data($p, $per ? (int) $per['id'] : null);
+        $data['rekap'] = rekap_ringkas($p, $per ? (int) $per['id'] : null);
+        // ekspor_data() hanya membawa kode/judul/kriteria. Status per tabel
+        // diambil dari rekap_semua_tabel() — sumber yang sama dengan layar,
+        // jadi PDF tidak mungkin melaporkan status berbeda dari dashboard.
+        $statusTabel = [];
+        foreach (rekap_semua_tabel($p, (int) ($per['id'] ?? 0)) as $r) {
+            $statusTabel[$r['kode']] = [
+                'status' => $r['status'],
+                'terisi' => $r['terisi'] ?? 0,
+                'total' => $r['total'] ?? 0,
+            ];
+        }
+        foreach ($data['tabel'] as &$t) {
+            $s = $statusTabel[$t['kode']] ?? null;
+            $t['status'] = $s['status'] ?? '—';
+            $t['terisi'] = $s['terisi'] ?? 0;
+            $t['total'] = $s['total'] ?? 0;
+        }
+        unset($t);
+        $halaman = pdf_dari_ekspor($p, $per ? (int) $per['id'] : null, $data, []);
+        $pdf = pdf_buat($halaman, 'Data Dukung');
+        $nama = qv('SELECT nama_ps FROM prodi WHERE id = ?', [$p], 'prodi');
+        $unduh = 'Data-Dukung-' . preg_replace('/[^A-Za-z0-9]+/', '-', (string) $nama)
+            . '-' . date('Ymd') . '.pdf';
+        header('Content-Type: application/pdf');
+        header('Content-Disposition: attachment; filename="' . $unduh . '"');
+        header('Content-Length: ' . (string) strlen($pdf));
+        header('Cache-Control: no-store');
+        echo $pdf;
+        exit;
     }
 
     if ($r1 === 'xlsx') {

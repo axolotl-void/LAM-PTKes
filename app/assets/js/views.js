@@ -35,6 +35,7 @@ import * as m_konsistensi from './pages/konsistensi.js';
 import * as m_tabelisi from './pages/tabelisi.js';
 import * as m_tabelmatriks from './pages/tabelmatriks.js';
 import * as m_tabelhitung from './pages/tabelhitung.js';
+import * as m_bimbingan from './pages/bimbingan.js';
 
 /* Label status: sekarang di pagekit.js (satu definisi). views.js hanya
    meneruskan supaya pemanggil lama tetap jalan. */
@@ -42,7 +43,7 @@ export { ST_LABEL } from './pagekit.js';
 
 /* ── peta halaman ─────────────────────────────────────────────────── */
 const MODS = {
-  dashboard: m_dashboard, ringkasan: m_ringkasan, identitas: m_identitas, periode: m_periode, dosen: m_dosen, keuangan: m_keuangan, kerjasama: m_kerjasama, pengguna: m_pengguna, mahasiswa: m_mahasiswa, kurikulum: m_kurikulum, sarana: m_sarana, pustaka: m_pustaka, uji: m_uji, survei: m_survei, datadukung: m_datadukung, dokumen: m_dokumen, konsistensi: m_konsistensi,
+  dashboard: m_dashboard, ringkasan: m_ringkasan, identitas: m_identitas, periode: m_periode, dosen: m_dosen, keuangan: m_keuangan, kerjasama: m_kerjasama, bimbingan: m_bimbingan, pengguna: m_pengguna, mahasiswa: m_mahasiswa, kurikulum: m_kurikulum, sarana: m_sarana, pustaka: m_pustaka, uji: m_uji, survei: m_survei, datadukung: m_datadukung, dokumen: m_dokumen, konsistensi: m_konsistensi,
   // Halaman isian satu tabel. Tidak muncul di sidebar (tidak ada di NAV),
   // dibuka dari tombol "Isi" di daftar Data Dukung.
   tabelisi: m_tabelisi,
@@ -74,6 +75,7 @@ const navItems = () => [
     ['identitas', 'Identitas UPPS & Prodi', 'F-01', 'identity'],
     ['periode', 'Periode Akreditasi', 'F-02', 'period'],
     ['dosen', 'Dosen & Tendik', 'F-06', 'lecturer'],
+    ['bimbingan', 'Bimbingan Tugas Akhir', 'T-21', 'student'],
     ['keuangan', 'Keuangan', 'F-17', 'finance'],
     ['kerjasama', 'Kerja Sama', 'F-19', 'partner'],
     // hanya peran yang boleh mengelola akun yang melihat menunya

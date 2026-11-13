@@ -11,7 +11,7 @@ import { hydrate, api, SESI, boleh } from './api.js';
 const state = { prodi: 'Kebidanan' };
 const PAGES = new Set(['dashboard', 'ringkasan', 'identitas', 'periode', 'dosen', 'keuangan',
   'kerjasama', 'pengguna', 'mahasiswa', 'kurikulum', 'sarana', 'pustaka', 'uji', 'survei',
-  'datadukung', 'dokumen', 'konsistensi']);
+  'datadukung', 'dokumen', 'konsistensi', 'bimbingan']);
 
 const $ = (sel) => document.querySelector(sel);
 const page = () => {
@@ -112,6 +112,12 @@ window.__paint = () => paint();
    hashchange — `const` tidak di-hoist seperti function. */
 const pemuat = {
   kerjasama: () => import('./pages/kerjasama.js').then((m) => m.muat?.()),
+  bimbingan: () => import('./pages/bimbingan.js').then((m) => m.muat?.()),
+  identitas: () => import('./pages/identitas.js').then((m) => m.muat?.()),
+  // Identitas memuat datanya sendiri. Tanpa entri ini halaman berhenti di
+  // "Memuat…" selamanya meski endpoint-nya membalas 200 — sudah terjadi.
+  // Identitas memuat datanya sendiri. Tanpa entri ini halaman berhenti di
+  // "Memuat…" selamanya meski endpoint-nya membalas 200 — sudah terjadi.
   dosen: () => import('./pages/dosen.js').then((m) => m.muat?.()),
   mahasiswa: () => import('./pages/mahasiswa.js').then((m) => m.muat?.()),
   kurikulum: () => import('./pages/kurikulum.js').then((m) => m.muat?.()),
@@ -283,12 +289,11 @@ function boot() {
 
     const ex = e.target.closest('[data-export]');
     if (ex) {
-      // XLSX sudah tersedia; PDF belum. Jangan beri tombol yang sama-sama
-      // berbunyi seolah dua-duanya jalan.
-      if (ex.dataset.export !== 'xlsx') {
-        alert('Ekspor PDF belum dibuat. Pakai XLSX dulu.');
-        return;
-      }
+      // Dua format, satu jalur: bedanya hanya endpoint dan ekstensi.
+      // Sebelumnya PDF masih di-hardcode "belum dibuat" padahal
+      // /api/ekspor/pdf sudah ada — tombol yang berbohong lebih buruk
+      // daripada tombol yang mati.
+      const format = ex.dataset.export === 'pdf' ? 'pdf' : 'xlsx';
       // Cek dulu apakah memang boleh. Blokirnya bukan kemewahan: file dengan
       // angka tidak konsisten antar tabel lebih berbahaya daripada tidak ada
       // file, karena asesor bisa memakainya untuk menolak.
@@ -302,7 +307,7 @@ function boot() {
           alert('Ekspor belum bisa:\n\n' + pesan);
           return;
         }
-        const r = await fetch('/api/ekspor/xlsx', { credentials: 'same-origin' });
+        const r = await fetch(`/api/ekspor/${format}`, { credentials: 'same-origin' });
         if (!r.ok) {
           const j = await r.json().catch(() => ({}));
           alert(j.error || `Gagal mengekspor (HTTP ${r.status}).`);
@@ -312,7 +317,7 @@ function boot() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `Data-Dukung-${state.prodi || 'prodi'}.xlsx`;
+        a.download = `Data-Dukung-${state.prodi || 'prodi'}.${format}`;
         document.body.appendChild(a);
         a.click();
         a.remove();

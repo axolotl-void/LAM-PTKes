@@ -136,8 +136,9 @@ cek('semua 38 tabel terbaca dengan status sah', $rusak === [], implode(',', $rus
 $totalInput = (int) qv("SELECT COUNT(*) FROM spec_field WHERE asal = 'Input'", [], 0);
 $jumlahTotal = array_sum(array_column($semua, 'total'));
 cek('field Input 38 tabel = spec di DB', $jumlahTotal === $totalInput, "$jumlahTotal/$totalInput");
-cek('tepat 7 tabel tanpa field Input (status hitung)',
-    count(array_filter($semua, fn($t) => $t['status'] === 'hitung')) === 7);
+// 8, bukan 7: Tabel 21 (bimbingan TA) dihitung dari tabel `bimbingan`.
+cek('tepat 8 tabel berstatus hitung',
+    count(array_filter($semua, fn($t) => $t['status'] === 'hitung')) === 8);
 cek('semua tabel berlaku untuk prodi bertahap profesi',
     count(array_filter($semua, fn($t) => $t['berlaku'])) === 38);
 

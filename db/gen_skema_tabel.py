@@ -29,6 +29,10 @@ from aturan_kelompok import pecah_label  # noqa: E402
 # Perbaiki field-spec-nya dulu kalau suatu saat ingin dibangkitkan lagi.
 BARIS_LEWATI = {"15"}
 
+# Judul asli 38 tabel (dari baris 1 tiap sheet Excel). Tanpa ini, halaman dan
+# ekspor menampilkan "01. Tabel 01" yang tidak memberi tahu apa pun.
+JUDUL = json.load(open(__file__.rsplit("/", 1)[0] + "/judul-tabel.json"))
+
 SRC = "field-spec.json"
 OUT_SQL = "migrasi/004_tabel.sql"
 OUT_PHP = "../web/spesifikasi/tabel.php"
@@ -191,7 +195,9 @@ CREATE TABLE sel (
             sql.append("-- Tabel %s: baris tabel dibuat di sini, field-nya di "
                        "migrasi/009_tabel15.sql (bentuk matriks)." % t["kode"])
         sql.append("INSERT INTO tabel_dukung (kode,nomor,judul,kriteria,khusus_profesi) VALUES "
-                   "('%s',%d,'%s','%s',%d);" % (t["kode"], t["no"], esc(t["kode"] + ". Tabel " + t["kode"]), t["kriteria"], 1 if t["khusus"] else 0))
+                   "('%s',%d,'%s','%s',%d);" % (t["kode"], t["no"],
+                       esc(t["kode"] + ". " + JUDUL.get(t["kode"], "Tabel " + t["kode"])),
+                       t["kriteria"], 1 if t["khusus"] else 0))
         if t["kode"] in BARIS_LEWATI:
             continue
         for f in t["fields"]:

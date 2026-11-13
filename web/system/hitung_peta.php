@@ -43,6 +43,7 @@ function hitung_tabel(): array
         '12' => ['judul' => 'Kepuasan Mahasiswa', 'berkas' => 'tabel0709081012.php', 'fn' => 't12_hitung'],
         '13' => ['judul' => 'Masa Tunggu Lulusan Mendapatkan Pekerjaan', 'berkas' => 'tabel133334.php', 'fn' => 't13_hitung'],
         '14' => ['judul' => 'Tingkat Kepuasan Pengguna', 'berkas' => 'tabel0709081012.php', 'fn' => 't14_hitung'],
+        '21' => ['judul' => 'Pembimbingan Tugas Akhir', 'berkas' => 'tabel21.php', 'fn' => 't21_hitung'],
         '33' => ['judul' => 'Jumlah Penerimaan Dana', 'berkas' => 'tabel133334.php', 'fn' => 't33_hitung'],
         '34' => ['judul' => 'Jumlah Penggunaan Dana', 'berkas' => 'tabel133334.php', 'fn' => 't34_hitung'],
     ];

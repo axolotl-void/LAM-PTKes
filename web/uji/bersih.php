@@ -25,6 +25,7 @@ const TABEL_UJI = [
     'mata_kuliah', 'laboratorium', 'pustaka',
     'uji_kompetensi', 'survei', 'tracer', 'stase',
     'mitra', 'mitra_wahana', 'mitra_kegiatan',
+    'bimbingan',                       // Tabel 21: mahasiswa dibimbing dosen
     'keuangan_terima', 'keuangan_guna',
     'audit', 'sesi', 'dokumen_unggah',
     // `periode` SENGAJA tidak dihapus: isinya datang dari 005_seed.sql
@@ -49,6 +50,16 @@ function bersihkan_data_uji(PDO $db, bool $diam = false): void
         }
     }
     $db->exec('SET FOREIGN_KEY_CHECKS = 1');
+
+    // Baris DB dihapus, tapi berkas fisik tidak ikut. Folder unggah yang
+    // menumpuk membuat uji berikutnya gagal pada pemeriksaan sisa berkas —
+    // dan di produksi berarti disk penuh tanpa ada yang menyadari.
+    $unggah = realpath(__DIR__ . '/../unggah');
+    if ($unggah !== false && is_dir($unggah)) {
+        foreach (glob($unggah . '/*') ?: [] as $berkas) {
+            if (is_file($berkas)) { @unlink($berkas); }
+        }
+    }
 }
 
 if (PHP_SAPI === 'cli' && realpath($argv[0] ?? '') === realpath(__FILE__)) {

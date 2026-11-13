@@ -47,7 +47,7 @@ cek('prodi aktif ada', $p > 0);
 echo "── peta tabel ──\n";
 
 $peta = hitung_tabel();
-cek('peta berisi 15 tabel', count($peta) === 15, 'dapat ' . count($peta));
+cek('peta berisi 16 tabel', count($peta) === 16, 'dapat ' . count($peta));
 cek('tabel tanpa hitungan ditolak jujur',
     isset(hitung_satu('99', $p)['error']));
 
