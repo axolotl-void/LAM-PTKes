@@ -136,6 +136,11 @@ function page() {
           else if (/^-?\d+\.\d+$/.test(tampil)) tampil = String(Number(tampil));
           return `<td class="sel-hitung sel-ada" title="dihitung sistem">${esc(tampil)}</td>`;
         }
+        // Nomor urut bukan isian: sistem yang menomori. Kotak input di sini
+        // membuat orang mengetik angka sendiri lalu bertabrakan.
+        if (f.kunci === 'no') {
+          return `<td class="num muted" title="nomor urut otomatis">${i + 1}</td>`;
+        }
         return `<td>${sel(f.kunci, f, i, v, dis)}</td>`;
       }).join('');
       const hapus = terkunci ? '' :
@@ -156,7 +161,11 @@ function page() {
        <button class="btn btn-primary" data-simpan="1">Simpan</button>`;
 
   return head(`Tabel ${kode}`,
-    `${esc(data.judul || '')} · ${baris.length} baris · ${bisa.length} kolom isian`,
+    // "No" adalah nomor urut otomatis, bukan kolom isian. Menghitungnya
+    // membuat subjudul bilang "3 kolom isian" padahal yang perlu diketik 2 —
+    // dan orang menghitung kotak input untuk mencari kolom ketiga.
+    `${esc(data.judul || '')} · <span id="jmlSub">${baris.length} baris</span> · `
+      + `${bisa.filter((f) => f.kunci !== 'no').length} kolom isian`,
     `<button class="btn btn-ghost" data-kembali="1">← Daftar tabel</button> ` + aksi)
     + (terkunci ? callout('lock', 'Tabel terkunci',
       `<p>Sudah dikunci verifikator. Isian tidak bisa diubah sampai dibuka.</p>`) : '')
@@ -165,7 +174,7 @@ function page() {
     + (data.bisa_tarik ? callout('info', 'Sebagian kolom diambil dari master',
       `<p>Kolom bertanda — diisi otomatis dari master (dosen, laboratorium, wahana, pustaka). `
       + `Klik <b>Tarik dari master</b> untuk mengisinya. Isian yang Anda ketik sendiri tidak akan tertimpa.</p>`) : '')
-    + card(cardHead(`Isian tabel ${kode}`, `${baris.length} baris`)
+    + card(cardHead(`Isian tabel ${kode}`, `<span id="jmlBaris">${baris.length} baris</span>`)
       + `<div style="overflow-x:auto">
         <table class="tbl tbl-isi">
           <thead><tr>${kepala}<th></th></tr></thead>
@@ -256,7 +265,17 @@ async function simpan() {
 if (typeof document !== 'undefined' && !window.__tabelisiPasang) {
   window.__tabelisiPasang = true;
 
-  document.addEventListener('click', async (e) => {
+  /* Perbarui label jumlah baris TANPA render ulang. Render ulang akan membuang
+   isian yang sedang diketik, karena nilainya hanya ada di DOM sampai Simpan. */
+function segarkanJumlah() {
+  const n = document.querySelectorAll('#isiTabel tr[data-baris]').length;
+  const badgeJml = document.getElementById('jmlBaris');
+  if (badgeJml) badgeJml.textContent = `${n} baris`;
+  const subJml = document.getElementById('jmlSub');
+  if (subJml) subJml.textContent = `${n} baris`;
+}
+
+document.addEventListener('click', async (e) => {
     if (e.target.closest('[data-kembali]')) {
       if (kotor && !confirm('Ada perubahan belum disimpan. Tinggalkan halaman?')) return;
       location.hash = '#/datadukung';
@@ -272,12 +291,24 @@ if (typeof document !== 'undefined' && !window.__tabelisiPasang) {
       const semua = data.spec.fields;
       const bisa = semua.filter((f) => f.asal === 'Input');
       const td = semua.map((f) => {
-        if (f.asal !== 'Input') return '<td class="sel-hitung">—</td>';
+        // Kolom Master dan Hitung DIBEDAKAN. Menulis semuanya sel-hitung
+        // membuat kolom master berlabel "dihitung sistem" padahal isinya
+        // datang dari master lewat tombol Tarik.
+        if (f.asal === 'Master') {
+          return `<td class="sel-master" title="dari master: ${esc(f.label)}">—</td>`;
+        }
+        if (f.asal !== 'Input') {
+          return `<td class="sel-hitung" title="dihitung sistem">—</td>`;
+        }
+        if (f.kunci === 'no') {
+          return `<td class="num muted" title="nomor urut otomatis">${i + 1}</td>`;
+        }
         return `<td>${sel(f.kunci, f, i, '', '')}</td>`;
       }).join('');
       tbody.insertAdjacentHTML('beforeend',
         `<tr data-baris="${i}">${td}<td class="r"><button class="lnk lnk-bad" data-hapus-baris="${i}">×</button></td></tr>`);
       kotor = true;
+      segarkanJumlah();
       return;
     }
 
@@ -287,8 +318,13 @@ if (typeof document !== 'undefined' && !window.__tabelisiPasang) {
       // Nomor baris digeser supaya payload tetap berurutan.
       document.querySelectorAll('#isiTabel tr[data-baris]').forEach((tr, n) => {
         tr.dataset.baris = n;
+        // Nomor urut ikut digeser: kalau tidak, setelah hapus baris ke-1
+        // tabel menampilkan 2, 3, 4 dengan lubang di awal.
+        const td = tr.querySelector('td');
+        if (td && td.classList.contains('num')) td.textContent = String(n + 1);
       });
       kotor = true;
+      segarkanJumlah();
       return;
     }
 
