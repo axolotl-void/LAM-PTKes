@@ -98,11 +98,14 @@ function rowWajib(t) {
     ? `<button class="lnk dd-kunci" data-kunci="${no}">Kunci →</button>` : '';
   const bukaBtn = (boleh('Buka kunci') && st === 'terkunci')
     ? `<button class="lnk dd-buka" data-buka="${no}">Buka kunci →</button>` : '';
+  // Tabel berstatus hitung tidak punya kolom isian sama sekali; tombol "Isi"
+  // di situ hanya mengecewakan. Arahkan ke halaman tabel supaya bisa dilihat.
+  const hanyaHitung = lv && lv.hanya_hitung;
   const aksi = st === 'terkunci'
     ? `<span class="lnk muted">Terkunci</span>${bukaBtn}`
-    : bisaIsi
-      ? `<button class="lnk dd-isi" data-isi="${no}" data-total="${ftt}" data-kini="${ft}">Isi →</button>`
-      : `<button class="lnk" data-nav="datadukung">Lihat →</button>`;
+    : (bisaIsi && !hanyaHitung)
+      ? `<a class="lnk dd-isi" href="#/tabelisi/${no}">Isi →</a>`
+      : `<a class="lnk" href="#/tabelisi/${no}">Lihat →</a>`;
   const aksiFinal = `${aksi}${kunciBtn}`;
 
 

@@ -33,6 +33,7 @@ require_once __DIR__ . '/system/kerjasama.php';
 require_once __DIR__ . '/system/dosen.php';
 require_once __DIR__ . '/system/koleksi.php';
 require_once __DIR__ . '/system/identitas.php';
+require_once __DIR__ . '/system/kelompok.php';
 require_once __DIR__ . '/spesifikasi/tabel.php';
 
 /* ── util ───────────────────────────────────────────────────────── */
@@ -204,6 +205,23 @@ if ($r0 === 'tabel' && $r1 !== '') {
             json_keluar(['error' => 'Prodi/periode belum ditetapkan.'], 409);
         }
         $spec = require __DIR__ . '/spesifikasi/tabel.php';
+        // Kelompok + pilih diambil dari DB (sumber kebenaran sama dengan
+        // validasi server) dan ditempelkan ke spec supaya halaman isian tidak
+        // menebak aturannya sendiri.
+        $meta = [];
+        foreach (spec_satu_tabel($kodeTabel) as $f) {
+            $meta[$f['kunci']] = $f;
+        }
+        if (isset($spec[$kodeTabel]['fields'])) {
+            foreach ($spec[$kodeTabel]['fields'] as &$ff) {
+                if (isset($meta[$ff['kunci']])) {
+                    $ff['kelompok'] = $meta[$ff['kunci']]['kelompok'];
+                    $ff['pilih'] = $meta[$ff['kunci']]['pilih'];
+                    $ff['asal'] = $meta[$ff['kunci']]['asal'];
+                }
+            }
+            unset($ff);
+        }
         $baris = q('SELECT id, urut, dikunci_oleh FROM baris_tabel
                     WHERE tabel_kode = ? AND prodi_id = ? AND periode_id = ? ORDER BY urut',
             [$kodeTabel, $p, (int) $per['id']]);
@@ -220,8 +238,10 @@ if ($r0 === 'tabel' && $r1 !== '') {
                     $s['nilai_angka'] !== null ? $s['nilai_angka'] : $s['nilai_teks'];
             }
         }
+        $judul = qv('SELECT judul FROM tabel_dukung WHERE kode = ?', [$kodeTabel], '');
         json_keluar([
             'kode' => $kodeTabel,
+            'judul' => $judul,
             'status' => status_satu_tabel($kodeTabel, $p, (int) $per['id']),
             'spec' => $spec[$kodeTabel] ?? null,
             'baris' => array_map(fn($b) => [
@@ -243,6 +263,18 @@ if ($r0 === 'tabel' && $r1 !== '') {
             if (!$p || !$per) {
                 json_keluar(['error' => 'Prodi/periode belum ditetapkan.'], 409);
             }
+            // Aturan pilih-satu ditegakkan SEBELUM menyentuh DB: kalau ada
+            // baris yang mustahil, tidak ada satu pun yang tersimpan. Simpan
+            // sebagian lalu menolak sebagian membuat operator tidak tahu mana
+            // yang masuk.
+            $spec = spec_satu_tabel($kodeTabel);
+            foreach ($b['baris'] as $i => $baris) {
+                $salah = periksa_kelompok((array) ($baris['nilai'] ?? []), $spec);
+                if ($salah !== null) {
+                    json_keluar(['error' => 'Baris ' . ($i + 1) . ': ' . $salah], 400);
+                }
+            }
+
             $hasil = transaksi(static function () use ($b, $kodeTabel, $p, $per) {
                 $n = 0;
                 foreach ($b['baris'] as $i => $baris) {

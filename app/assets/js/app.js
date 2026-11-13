@@ -16,6 +16,10 @@ const PAGES = new Set(['dashboard', 'ringkasan', 'identitas', 'periode', 'dosen'
 const $ = (sel) => document.querySelector(sel);
 const page = () => {
   const h = location.hash.replace('#/', '');
+  // #/tabelisi/01 -> halaman isian satu tabel. Parameternya harus ikut
+  // dikenali, kalau tidak router jatuh ke dashboard dan orang kehilangan
+  // pekerjaannya di tengah pengisian.
+  if (h.startsWith('tabelisi')) return 'tabelisi';
   return PAGES.has(h) ? h : 'dashboard';
 };
 
@@ -113,6 +117,7 @@ const pemuat = {
   pustaka: () => import('./pages/pustaka.js').then((m) => m.muat?.()),
   uji: () => import('./pages/uji.js').then((m) => m.muat?.()),
   survei: () => import('./pages/survei.js').then((m) => m.muat?.()),
+  tabelisi: () => import('./pages/tabelisi.js').then((m) => m.muat?.()),
 };
 function muatHalaman() {
   const p = page();
@@ -276,6 +281,18 @@ function boot() {
   });
 
   window.addEventListener('hashchange', () => { paint(); muatHalaman(); });
+
+  /* Klik tombol "Isi" pada tabel yang SAMA saat sudah di halaman isian tidak
+     memicu hashchange, jadi halaman tidak dimuat ulang dan isian lama tetap
+     menempel (baris bertambah dobel). Paksa muat ulang kalau hash-nya sama. */
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="#/tabelisi/"]');
+    if (!a) return;
+    if (a.getAttribute('href') === location.hash) {
+      e.preventDefault();
+      muatHalaman();
+    }
+  });
 
   // Cek sesi dulu, baru render. Tanpa sesi: layar masuk, bukan dashboard.
   hydrate().then((live) => {

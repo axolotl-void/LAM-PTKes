@@ -32,6 +32,7 @@ import * as m_survei from './pages/survei.js';
 import * as m_datadukung from './pages/datadukung.js';
 import * as m_dokumen from './pages/dokumen.js';
 import * as m_konsistensi from './pages/konsistensi.js';
+import * as m_tabelisi from './pages/tabelisi.js';
 
 /* Label status: sekarang di pagekit.js (satu definisi). views.js hanya
    meneruskan supaya pemanggil lama tetap jalan. */
@@ -40,6 +41,9 @@ export { ST_LABEL } from './pagekit.js';
 /* ── peta halaman ─────────────────────────────────────────────────── */
 const MODS = {
   dashboard: m_dashboard, ringkasan: m_ringkasan, identitas: m_identitas, periode: m_periode, dosen: m_dosen, keuangan: m_keuangan, kerjasama: m_kerjasama, pengguna: m_pengguna, mahasiswa: m_mahasiswa, kurikulum: m_kurikulum, sarana: m_sarana, pustaka: m_pustaka, uji: m_uji, survei: m_survei, datadukung: m_datadukung, dokumen: m_dokumen, konsistensi: m_konsistensi,
+  // Halaman isian satu tabel. Tidak muncul di sidebar (tidak ada di NAV),
+  // dibuka dari tombol "Isi" di daftar Data Dukung.
+  tabelisi: m_tabelisi,
 };
 const PAGES = Object.fromEntries(Object.entries(MODS).map(([k, m]) => [k, m.default]));
 
