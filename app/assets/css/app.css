@@ -1051,107 +1051,180 @@ body.belum-masuk .sb-toggle { display: none; }
 .dok-panah { font-size: 12px; color: var(--ink2); }
 .dok-grup-kepala { padding: 2px 0; }
 
-/* ══ Data Dukung: bentuk kartu ══════════════════════════════════════
-   38 baris tabel = 1845px gulir tanpa titik pandang, dan judul tabel
-   (sampai 90 karakter) terpotong di kolom. Kartu memberi satu titik
-   pandang per tabel + ruang untuk judul utuh. */
-.dd-section-head { margin: 22px 0 10px; }
-.dd-section-head h3 { font-size: var(--fs-md); font-weight: 700; }
-.dd-section-head .n { font-size: var(--fs-xs); color: var(--ink3); margin-left: 8px; }
+/* ══ Data Dukung: baris per tabel ════════════════════════════════════
+ *
+ * Kenapa baris dan bukan kartu: isi satu tabel hanya 4 potongan (kode,
+ * judul, status, kemajuan). Kotak mengelilingi isi setipis itu dengan
+ * padding, lalu 38 kotak terbaca sebagai dinding abu-abu tanpa titik masuk.
+ * Baris memberi pemindaian vertikal yang cepat dan lebar penuh untuk judul
+ * panjang, dengan satu aksen warna status di tepi kiri.
+ *
+ * Lebar kolom: grid-template-columns dengan ukuran tetap untuk kode, status,
+ * metrik, aksi — dan 1fr untuk judul. Jadi judul yang panjang TIDAK menggeser
+ * kolom lain, dan semua baris tetap sejajar.
+ */
 
-.kt-bagian { margin-bottom: 20px; }
-.kt-bagian-kepala {
-  display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
-  padding-bottom: 6px; margin-bottom: 10px; border-bottom: 1px solid var(--bd);
+.br-kendali {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  margin: 2px 0 18px;
 }
-.kt-bagian-kepala h2 {
-  font-size: var(--fs-sm); font-weight: 700; display: flex; align-items: center; gap: 8px;
+.br-ringkas {
+  font-size: var(--fs-sm); font-weight: 600; color: var(--ink);
+  margin: 0;
 }
-.kt-krit {
-  font-family: var(--mono, ui-monospace, monospace); font-size: 10.5px; font-weight: 700;
-  color: var(--ind); background: var(--ind-bg, #EEF0FF);
-  padding: 2px 6px; border-radius: 4px; letter-spacing: .02em;
+.br-saring { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.br-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: inherit; font-size: var(--fs-xs); font-weight: 500;
+  padding: 4px 10px; border-radius: 99px;
+  border: 1px solid transparent; background: transparent;
+  color: var(--ink3); cursor: pointer;
+  transition: background .12s, color .12s;
 }
-.kt-bagian-kepala .note { font-size: var(--fs-xs); color: var(--ink3); margin-left: auto; }
+.br-chip b { font-weight: 700; color: var(--ink2); }
+.br-chip:hover { background: var(--dv); }
+.br-chip.on { background: var(--ind-bg, #EEF0FF); color: var(--ind); }
+.br-chip.on b { color: var(--ind); }
+.br-chip:focus-visible { outline: 2px solid var(--ind); outline-offset: 2px; }
 
-/* auto-fill: 1 kolom di layar sempit, 2-3 di desktop. minmax(260px,1fr)
-   supaya judul panjang tidak memaksa kartu melebar. */
-.kt-grid {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 10px;
+/* ── bagian per kriteria ─────────────────────────────────────────── */
+.br-krit-bagian { margin-bottom: 22px; }
+.br-krit-kepala {
+  display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap;
+  margin-bottom: 7px;
 }
-
-.kt {
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 12px 12px 10px; border: 1px solid var(--bd); border-radius: 9px;
-  background: var(--surf); min-width: 0;
-  transition: border-color .15s, box-shadow .15s;
+.br-krit-kode {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  color: var(--ink3); letter-spacing: .04em;
 }
-.kt:hover { border-color: var(--ink4, #98A2B3); box-shadow: 0 1px 3px rgba(16,24,40,.06); }
-
-/* Tepi kiri berwarna per status: satu pandangan, tanpa membaca badge. */
-.kt-ok      { border-left: 3px solid var(--ok); }
-.kt-warn    { border-left: 3px solid var(--warn); }
-.kt-bad     { border-left: 3px solid var(--bad); }
-.kt-lock    { border-left: 3px solid var(--lock, #6941C6); }
-/* Tabel otomatis: abu-biru, BUKAN ungu. Ungu di halaman ini berarti
-   "terkunci" (butuh izin untuk mengubah) — arti yang sama sekali lain. */
-.kt-hitung  { border-left: 3px solid #7F8CA3; }
-.kt-muted   { border-left: 3px solid var(--bd); }
-
-.kt-kepala { display: flex; align-items: center; gap: 8px; }
-.kt-kode {
-  font-family: var(--mono, ui-monospace, monospace); font-size: 10.5px; font-weight: 700;
-  color: var(--ink2); letter-spacing: .02em;
+.br-krit-kepala h2 {
+  font-size: var(--fs-sm); font-weight: 700; color: var(--ink); margin: 0;
 }
-.kt-kepala .badge { margin-left: auto; }
-
-/* Judul: 2 baris penuh lalu dipotong. Dipotong dengan garis bawah halus,
-   bukan dipaksa 1 baris — judul tabel sampai 90 karakter. */
-.kt-judul {
-  font-size: var(--fs-sm); font-weight: 600; line-height: 1.35; margin: 0;
-  color: var(--ink);
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical;
-  overflow: hidden; flex: 1;
+.br-krit-meta {
+  font-size: var(--fs-xs); color: var(--ink3); margin-left: auto;
+  font-variant-numeric: tabular-nums;
 }
 
-.kt-bilah {
-  height: 4px; border-radius: 99px; background: var(--dv); overflow: hidden;
-}
-.kt-bilah i { display: block; height: 100%; background: var(--ok); border-radius: 99px; }
-.kt-warn .kt-bilah i { background: var(--warn); }
-.kt-bad  .kt-bilah i { background: var(--bad); }
-/* Tabel otomatis tidak punya penyebut: garis putus-putus, bukan bilah kosong.
-   Bilah kosong terbaca "belum dikerjakan" padahal tidak ada yang dikerjakan. */
-.kt-bilah-auto {
-  background: repeating-linear-gradient(90deg, var(--bd) 0 4px, transparent 4px 8px);
+/* ── daftar baris ────────────────────────────────────────────────── */
+.br-daftar {
+  border: 1px solid var(--bd); border-radius: var(--r);
+  background: var(--surf); overflow: hidden;
 }
 
-.kt-kaki {
-  display: flex; align-items: center; justify-content: space-between; gap: 8px;
-  margin-top: 2px;
+.br {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 84px 74px 62px;
+  align-items: center; gap: 12px;
+  padding: 9px 14px 9px 11px;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--dv);
+  min-height: 42px;
 }
-.kt-metrik { font-size: var(--fs-xs); font-weight: 700; color: var(--ink2); }
-.kt-metrik span { font-weight: 500; color: var(--ink3); }
-.kt-metrik-auto { font-weight: 500; color: var(--ink3); }
-.kt-aksi {
+.br:last-child { border-bottom: 0; }
+.br:hover { background: #FAFBFC; }
+
+/* Aksen kiri = status, satu-satunya tempat warna di baris. */
+.br[data-st="kosong"]   { border-left-color: var(--bd); }
+.br[data-st="sebagian"] { border-left-color: var(--warn); }
+.br[data-st="lengkap"]  { border-left-color: var(--ok); }
+.br[data-st="terkunci"] { border-left-color: var(--lock, #6941C6); }
+.br[data-st="hitung"]   { border-left-color: #B6BFCE; }
+
+.br-kode {
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  color: var(--ink3); letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.br-utama { min-width: 0; display: flex; align-items: baseline; gap: 8px; }
+.br-judul {
+  font-size: var(--fs-sm); font-weight: 500; color: var(--ink);
+  text-decoration: none; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.br-judul:hover { color: var(--ind); text-decoration: underline; }
+.br-judul-static { font-size: var(--fs-sm); color: var(--ink3); }
+.br-krit {
+  font-family: var(--mono); font-size: 9.5px; font-weight: 700;
+  color: var(--ink4, #98A2B3); flex: none;
+}
+
+/* Status sebagai teks, bukan badge. Badge di 38 baris = 38 kotak kecil yang
+   bersaing dengan judul. Teks berwarna cukup, dan warnanya sama dengan
+   aksen tepi kiri sehingga terbaca sekali lihat. */
+.br-status {
+  font-size: 10.5px; font-weight: 600; white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.br[data-st="kosong"] .br-status   { color: var(--ink2); }
+.br[data-st="sebagian"] .br-status { color: var(--warn); }
+.br[data-st="lengkap"] .br-status  { color: var(--ok); }
+.br[data-st="terkunci"] .br-status { color: var(--lock, #6941C6); }
+.br[data-st="hitung"] .br-status   { color: var(--ink3); }
+
+.br-metrik-wrap { min-width: 0; }
+.br-metrik {
+  display: block; font-size: 10.5px; color: var(--ink3); font-weight: 600;
+  font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap;
+}
+.br-metrik b { color: var(--ink2); font-weight: 700; }
+.br-metrik-auto { font-weight: 500; }
+
+/* Bilah kemajuan di bawah angka? Tidak — ruangnya sempit. Bilah kecil di
+   samping angka memberi isyarat yang sama tanpa memakan baris. */
+.br-bilah {
+  display: block; height: 3px; border-radius: 99px;
+  background: #DDE2EA; margin-top: 3px; overflow: hidden;
+}
+/* 0/x: isi bilah tidak ada, jadi beri titik awal yang terlihat. Tanpa ini
+   baris "0/3" dan "0/7" tampak identik dan bilah hanya dekorasi. */
+.br-bilah i { min-width: 3px; }
+.br-bilah i { display: block; height: 100%; background: var(--ok); border-radius: 99px; }
+.br[data-st="sebagian"] .br-bilah i { background: var(--warn); }
+
+.br-aksi {
   font-size: var(--fs-xs); font-weight: 600; color: var(--ind);
-  text-decoration: none; white-space: nowrap;
+  text-decoration: none; text-align: right; white-space: nowrap;
+  justify-self: end;
+  padding: 3px 9px; border-radius: 6px; border: 1px solid var(--ind);
+  transition: background .12s, color .12s;
 }
-.kt-aksi:hover { text-decoration: underline; }
+.br-aksi:hover { background: var(--ind); color: #fff; }
+/* Baris yang sudah pernah diisi: aksi "Lanjutkan" sama kuat, tapi tidak
+   perlu bobot penuh — pekerjaannya melanjutkan, bukan memulai. */
+.br[data-st="sebagian"] .br-aksi { color: var(--ind); }
+.br-aksi-sekunder {
+  color: var(--ink); font-weight: 500;
+  border-color: var(--bd); padding: 3px 9px;
+}
+.br-aksi-sekunder:hover { color: var(--ind); border-color: var(--ind); background: transparent; }
 
-.kt-judul { min-height: calc(3 * 1.35em); }
-.kt-kaki { min-height: 18px; }
-.kt-aksi-sekunder { color: var(--ink3); font-weight: 500; }
-.kt-aksi-sekunder:hover { color: var(--ind); }
+/* ── tabel tidak berlaku (dilipat) ───────────────────────────────── */
+.br-na { margin-top: 8px; }
+.br-na summary {
+  font-size: var(--fs-xs); color: var(--ink3); cursor: pointer;
+  padding: 6px 0; list-style-position: inside;
+}
+.br-na summary:hover { color: var(--ink); }
+.br-na .br-daftar { margin-top: 8px; }
+.br-na-baris { grid-template-columns: 46px minmax(0, 1fr) 84px; }
 
-/* Chip filter yang bisa diklik. Bedakan dari chip statis: `on` = pilihan aktif. */
-.dd-filter .chip { cursor: pointer; font: inherit; font-size: var(--fs-xs);
-  background: var(--surf); border: 1px solid var(--bd); border-radius: 99px;
-  padding: 5px 11px; color: var(--ink2); transition: border-color .12s, background .12s; }
-.dd-filter .chip.on { background: var(--ind-bg, #EEF0FF); border-color: var(--ind);
-  color: var(--ind); }
-.dd-filter .chip.on b { color: var(--ind); }
-.dd-filter .chip:focus-visible { outline: 2px solid var(--ind); outline-offset: 2px; }
-/* Kartu tersembunyi filter: `hidden` harus menang atas display:flex. */
-.kt[hidden], .kt-bagian[hidden] { display: none !important; }
+/* Saring: sembunyikan tanpa kehilangan struktur. */
+.br[hidden], .br-krit-bagian[hidden] { display: none !important; }
+
+/* Layar sempit: kolom metrik & status turun ke baris kedua judul. */
+@media (max-width: 720px) {
+  .br {
+    grid-template-columns: 40px minmax(0, 1fr) 52px;
+    grid-template-areas: "kode judul aksi" ". meta meta";
+    gap: 4px 10px; padding: 10px 12px;
+  }
+  .br-kode { grid-area: kode; }
+  .br-utama { grid-area: judul; }
+  .br-status { grid-area: meta; }
+  .br-metrik { grid-area: meta; justify-self: end; text-align: right; }
+  .br-aksi { grid-area: aksi; }
+  .br-krit-meta { margin-left: 0; }
+  .br-saring { margin-left: 0; }
+}
