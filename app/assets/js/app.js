@@ -265,12 +265,22 @@ function boot() {
       return;
     }
 
-    // ── verifikasi (kunci tabel) — hanya peran ber-"Verifikasi" ──
-    const kunci = e.target.closest('[data-kunci]');
+    // ── verifikasi (kunci TABEL) — hanya peran ber-"Verifikasi" ──
+    //
+    // PENTING: hanya .dd-kunci yang boleh masuk sini. Atribut `data-kunci`
+    // dipakai DUA hal berbeda di aplikasi ini:
+    //   - tombol kunci tabel: data-kunci="01"           (di halaman Data Dukung)
+    //   - sel isian:          data-kunci="nama_kolom"   (di halaman isian tabel)
+    // Handler lama memakai closest('[data-kunci]') sehingga MENGETIK di sel
+    // memicu dialog "Kunci T-praktikum_judul_modul?" — nama kolom dibaca
+    // sebagai nomor tabel. Bug ini membuat pengisian data tidak mungkin.
+    const kunci = e.target.closest('[data-kunci-tabel], .dd-kunci');
     if (kunci) {
-      if (!confirm(`Kunci T-${kunci.dataset.kunci}? Setelah dikunci isian ditolak sampai Admin UPPS membuka.`)) return;
+      const noTabel = kunci.dataset.kunciTabel || kunci.dataset.kunci;
+      e.preventDefault();
+      if (!confirm(`Kunci Tabel T-${noTabel}? Setelah dikunci, isian ditolak sampai Admin UPPS membuka.`)) return;
       kunci.disabled = true;
-      api.kunci(kunci.dataset.kunci).then(async (r) => {
+      api.kunci(noTabel).then(async (r) => {
         if (!r || r.error) { kunci.disabled = false; alert(r?.error || 'Gagal.'); return; }
         await hydrate();
         paint();
@@ -278,10 +288,17 @@ function boot() {
       return;
     }
 
-    const buka = e.target.closest('[data-buka]');
+    // Sama seperti kunci: `data-buka` juga dipakai DUA hal —
+    //   - .dd-buka  = tombol buka kunci tabel (nilai nomor tabel)
+    //   - .dok-grup-kepala = accordion dokumen (nilai kunci kriteria)
+    // Handler lama menangkap keduanya, jadi membuka accordion dokumen
+    // mencoba "buka kunci" dengan nilai "K1".
+    const buka = e.target.closest('[data-kunci-buka], .dd-buka');
     if (buka) {
+      const noTabel = buka.dataset.kunciBuka || buka.dataset.buka;
+      e.preventDefault();
       buka.disabled = true;
-      api.buka(buka.dataset.buka).then(async (r) => {
+      api.buka(noTabel).then(async (r) => {
         if (!r || r.error) { buka.disabled = false; alert(r?.error || 'Gagal.'); return; }
         await hydrate();
         paint();

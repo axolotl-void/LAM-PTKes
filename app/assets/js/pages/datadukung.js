@@ -259,8 +259,27 @@ function kartuTabel(t) {
 
   const tautan = matriks ? `#/tabelmatriks/${no}` : `#/tabelisi/${no}`;
   const mulai = ft === 0;
-  const label = mulai ? 'Mulai isi' : 'Lanjutkan';
+  let label = mulai ? 'Mulai isi' : 'Lanjutkan';
   const persen = ftt > 0 ? Math.round((ft / ftt) * 100) : 0;
+
+  // Kunci hanya untuk tabel yang sudah lengkap dan peran ini berhak
+  // memverifikasi. Tombol yang selalu ditolak server lebih buruk daripada
+  // tombol yang tidak dirender.
+  // "Lengkap" = semua kolom isian terisi. Untuk tabel ber-.no saja (1 kolom
+  // "No" yang otomatis) ft/ftt bisa 0/1 padahal isinya sudah ada, jadi
+  // kelengkapan harus diambil dari status server, bukan hanya rasio.
+  const penuh = ftt > 0 && ft >= ftt;
+  if (st === 'terkunci') {
+    label = 'Buka kunci';
+  } else if (penuh && boleh('Verifikasi')) {
+    label = 'Kunci';
+  }
+
+  // Setelah terkunci, mengisi tidak mungkin — arahkan ke buka kunci.
+  const aksiKunci = st === 'terkunci' ? ' data-buka-kunci="1"' : '';
+  const tautanAksi = st === 'terkunci' && boleh('Buka kunci')
+    ? '#'
+    : tautan;
 
   return `<article class="kr kr-${esc(st)}" data-st="${esc(st)}">
     <header class="kr-kepala">
@@ -273,7 +292,9 @@ function kartuTabel(t) {
       ${persen > 0 ? `<span class="kr-persen">${persen}%</span>` : ''}
     </div>
     <div class="kr-bilah" aria-hidden="true"><i style="width:${persen}%"></i></div>
-    <a class="kr-aksi" href="${tautan}">${label}</a>
+    <a class="kr-aksi" href="${tautanAksi}"${st === 'terkunci' && boleh('Buka kunci')
+      ? ` data-kunci-buka="${no}"` : ''}${st === 'lengkap' && penuh && boleh('Verifikasi')
+      ? ` data-kunci-tabel="${no}"` : ''}>${label}</a>
   </article>`;
 }
 
